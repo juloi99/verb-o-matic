@@ -17,8 +17,8 @@ const VerbAnswers = (() => {
   };
   // The course draws verbs without a direct object, including monter, descendre and sortir.
   const etreVerbs = new Set([
-    'aller', 'descendre', 'devenir', 'intervenir', 'monter', 'mourir',
-    'naitre', 'parvenir', 'partir', 'sortir', 'venir',
+    'aller', 'arriver', 'descendre', 'devenir', 'entrer', 'intervenir', 'monter', 'mourir',
+    'naitre', 'parvenir', 'partir', 'passer', 'rester', 'revenir', 'sortir', 'tomber', 'venir',
   ]);
   const invariantReflexives = new Set(['se plaire', 'se rappeler']);
   const reflexivePronouns = ['me', 'te', 'se', 'nous', 'vous', 'se'];

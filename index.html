@@ -58,6 +58,17 @@ small, .muted { color: var(--muted); }
 .logo { display: flex; justify-content: center; align-items: center; gap: 3px; width: 2.65rem; height: 2.65rem; border-radius: .63rem; background: var(--lime); }
 .logo i { width: 5px; height: 1.15rem; background: linear-gradient(var(--ink) 38%, #a8c242 38% 62%, var(--ink) 62%); border-radius: 2px; }
 .actions, .nav, .inline, .dialog-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .55rem; }
+.icon-action { position: relative; }
+.icon-button { display: grid; place-items: center; width: 2.75rem; height: 2.75rem; padding: 0; }
+.icon-button .icon { width: 1.28rem; height: 1.28rem; }
+.icon-button[aria-pressed="false"] { color: var(--muted); }
+.icon-tooltip {
+  position: absolute; top: calc(100% + .45rem); right: 0; z-index: 6;
+  width: max-content; max-width: 13rem; padding: .32rem .5rem; border: 1px solid var(--border);
+  border-radius: .4rem; background: var(--raised); color: var(--text); font-size: .78rem;
+  opacity: 0; visibility: hidden; pointer-events: none;
+}
+.icon-action:hover .icon-tooltip, .icon-action:focus-within .icon-tooltip { opacity: 1; visibility: visible; }
 .nav button[aria-current="page"] { border-color: var(--lime); color: var(--lime); }
 #game { min-height: calc(100dvh - 6rem); display: grid; align-content: center; padding-block: .55rem 1rem; }
 .cabinet {
@@ -159,6 +170,9 @@ button.launch:active:not([aria-disabled="true"]) { transform: translateY(3px); b
 .group-0 { --accent: var(--lime); }
 .group-1 { --accent: var(--violet); }
 .group-2 { --accent: var(--coral); }
+.group-3 { --accent: #82e4dd; }
+.audio-settings { margin-top: 1rem; }
+.audio-settings .inline { column-gap: 1.4rem; }
 .panel .actions { margin-top: .7rem; }
 .tense-actions { display: flex; flex-wrap: wrap; gap: .45rem; margin-bottom: .6rem; }
 .tense-actions button { min-height: 2.2rem; padding-block: .35rem; }
@@ -223,9 +237,20 @@ dialog textarea { min-height: 6.5rem; resize: vertical; }
 <header class="top shell">
   <div class="brand"><span class="logo" aria-hidden="true"><i></i><i></i><i></i></span><h2>Verb-o-matic</h2></div>
   <div class="actions" id="game-actions">
-    <button type="button" id="sound" aria-pressed="true">Son activé</button>
-    <button type="button" id="projection">Projection</button>
-    <button type="button" data-page="settings">Réglages</button>
+    <span class="icon-action">
+      <button type="button" class="icon-button" id="sound" aria-label="Son général" aria-pressed="true">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="sound-on" d="M16 9a4 4 0 0 1 0 6m2-8a7 7 0 0 1 0 10"/><path class="sound-off" d="m17 10 4 4m0-4-4 4" hidden/></svg>
+      </button>
+      <span class="icon-tooltip" id="sound-tooltip" aria-hidden="true">Couper le son</span>
+    </span>
+    <span class="icon-action">
+      <button type="button" class="icon-button" id="projection" aria-label="Projection"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4m-2-13 4 2.5-4 2.5z"/></svg></button>
+      <span class="icon-tooltip" aria-hidden="true">Mode projection</span>
+    </span>
+    <span class="icon-action">
+      <button type="button" class="icon-button" data-page="settings" aria-label="Réglages"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h7m4 0h5M4 12h3m4 0h9M4 18h10m4 0h2"/><circle cx="13" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="16" cy="18" r="2"/></svg></button>
+      <span class="icon-tooltip" aria-hidden="true">Réglages</span>
+    </span>
   </div>
   <nav class="nav" id="navigation" aria-label="Navigation" hidden>
     <button type="button" data-page="game">Jouer</button>
@@ -288,6 +313,13 @@ dialog textarea { min-height: 6.5rem; resize: vertical; }
         <div class="subsection"><h2>Périphrases</h2><div class="choices" id="phrases"></div></div>
       </section>
     </div>
+    <section class="panel audio-settings" aria-labelledby="audio-heading">
+      <h2 id="audio-heading">Son</h2>
+      <div class="inline">
+        <label class="checkbox-label"><input type="checkbox" id="music-setting"> Musique de fond</label>
+        <label class="checkbox-label"><input type="checkbox" id="sound-setting"> Effets sonores</label>
+      </div>
+    </section>
     <details class="panel advanced" id="advanced">
       <summary>Mode avancé</summary>
       <div class="advanced-controls">
@@ -298,7 +330,6 @@ dialog textarea { min-height: 6.5rem; resize: vertical; }
             <output id="duration" aria-live="polite"></output>
             <button type="button" id="higher-value" aria-label="Augmenter la durée">+</button>
           </span>
-          <label class="checkbox-label"><input type="checkbox" id="sound-setting"> Effets sonores</label>
         </div>
         <div class="actions">
           <button type="button" id="import">Importer</button>
@@ -319,6 +350,7 @@ dialog textarea { min-height: 6.5rem; resize: vertical; }
     <div id="inventory-list" class="inventory-list" tabindex="0" role="region" aria-label="Liste des verbes"></div>
   </section>
 </main>
+<audio id="background-music" src="arcade-loop.wav" preload="none" loop></audio>
 <dialog id="verb-dialog">
   <form id="verb-form">
     <h2 id="verb-dialog-title">Ajouter des verbes</h2>
@@ -351,7 +383,8 @@ dialog textarea { min-height: 6.5rem; resize: vertical; }
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
 
-const groups = ['Zéro excuse', 'Irréguliers indispensables', 'Irréguliers complémentaires'];
+const courseGroups = ['Zéro excuse', 'Irréguliers indispensables', 'Irréguliers complémentaires'];
+const groups = [...courseGroups, 'Verbes fréquents ajoutés'];
 const subjects = ['je', 'tu', 'il / elle', 'nous', 'vous', 'ils / elles'];
 const tenseEntries = [
   ['indicatif-present', 'Indicatif présent'], ['passe-compose', 'Passé composé'],
@@ -368,9 +401,17 @@ const formatNumber = new Intl.NumberFormat('fr-BE', { maximumFractionDigits: 1 }
 const collator = new Intl.Collator('fr');
 const storageKey = 'verb-o-matic.v1';
 const revision = 'general';
+const topPreset = 'top-50';
 const customSelection = 'manual';
 const restrictions = ['auto', 'no-imperative', 'impersonal'];
-const base = JSON.parse($('#verb-data').textContent).flatMap((list, group) => list.map(word => ({ word, group, restriction: 'auto' })));
+// Étienne Brunet, Éduscol, « Liste de fréquence lexicale » (verbes, rangs 1–50).
+// https://eduscol.education.gouv.fr/6873/liste-de-frequence-lexicale
+const frequentWords = ["être","avoir","faire","dire","pouvoir","aller","voir","vouloir","venir","devoir","prendre","trouver","donner","falloir","parler","mettre","savoir","passer","regarder","aimer","croire","demander","rester","répondre","entendre","penser","arriver","connaitre","devenir","sentir","sembler","tenir","comprendre","rendre","attendre","sortir","vivre","entrer","reprendre","porter","chercher","revenir","appeler","mourir","partir","jeter","suivre","écrire","montrer","tomber"];
+const course = JSON.parse($('#verb-data').textContent).flatMap((list, group) => list.map(word => ({ word, group, restriction: 'auto' })));
+const courseWords = new Set(course.map(entry => entry.word));
+const supplementalWords = new Set(frequentWords.filter(word => !courseWords.has(word)));
+const base = [...course, ...[...supplementalWords]
+  .map(word => ({ word, group: courseGroups.length, restriction: 'auto' }))];
 const baseWords = new Set(base.map(entry => entry.word));
 const normalize = text => text.trim().normalize('NFC').toLocaleLowerCase('fr').replace(/['‘ʼ]/g, '’').replace(/\s+/g, ' ');
 const matchText = text => normalize(text).normalize('NFD').replace(/\p{M}/gu, '');
@@ -381,8 +422,8 @@ const aliases = new Map([
 ]);
 const canonicalWord = text => aliases.get(normalize(text)) ?? normalize(text);
 const defaultState = () => ({
-  version: 1, selected: [...baseWords], tenses: [...allTenses],
-  custom: [], presets: [], activePreset: revision, duration: 3, sound: true,
+  version: 1, selected: [...courseWords], tenses: [...allTenses],
+  custom: [], presets: [], activePreset: revision, duration: 3, sound: true, music: true, muted: false,
 });
 const durationLimit = value => Math.max(.5, Math.min(12, Math.round(value * 2) / 2));
 const unique = list => [...new Set(list)];
@@ -392,12 +433,14 @@ function parseState(raw) {
     throw Error('Format de fichier incompatible.');
   }
   const known = new Set(baseWords);
+  const customized = new Set();
   const custom = [];
   for (const entry of raw.custom) {
     if (!entry || !validVerb(entry.word) || ![0, 1, 2].includes(entry.group) || !restrictions.includes(entry.restriction)) continue;
     const word = canonicalWord(entry.word);
-    if (known.has(word)) continue;
+    if (customized.has(word) || (known.has(word) && !supplementalWords.has(word))) continue;
     known.add(word);
+    customized.add(word);
     custom.push({ word, group: entry.group, restriction: entry.restriction });
   }
   const filterWords = words => unique(words.filter(word => known.has(word)));
@@ -412,12 +455,14 @@ function parseState(raw) {
     presets.push({ id: preset.id, name: preset.name.trim().slice(0, 60),
       selected: filterWords(preset.selected), tenses: filterTenses(preset.tenses) });
   }
-  const validPreset = [revision, customSelection, ...groups.map((_, index) => 'group-' + index), ...presetIds];
+  const validPreset = [revision, topPreset, customSelection, ...courseGroups.map((_, index) => 'group-' + index), ...presetIds];
   return {
     version: 1, selected: filterWords(raw.selected), tenses: filterTenses(raw.tenses), custom, presets,
     activePreset: validPreset.includes(raw.activePreset) ? raw.activePreset : customSelection,
     duration: typeof raw.duration === 'number' && Number.isFinite(raw.duration) ? durationLimit(raw.duration) : 3,
     sound: typeof raw.sound === 'boolean' ? raw.sound : true,
+    music: typeof raw.music === 'boolean' ? raw.music : raw.sound !== false,
+    muted: raw.muted === true,
   };
 }
 let state = defaultState();
@@ -450,7 +495,10 @@ function persist() {
   try { localStorage.setItem(storageKey, JSON.stringify(state)); }
   catch { message('Le navigateur bloque l’enregistrement local. Tu peux exporter tes réglages.'); }
 }
-const inventory = () => [...base, ...state.custom];
+const inventory = () => {
+  const customWords = new Set(state.custom.map(entry => entry.word));
+  return [...base.filter(entry => !customWords.has(entry.word)), ...state.custom];
+};
 const randomChoice = items => items[Math.floor(Math.random() * items.length)];
 
 const impersonal = new Set(['falloir', 'pleuvoir', 'neiger']);
@@ -624,7 +672,7 @@ async function revealAnswer() {
   $('#answer-panel').scrollIntoView({block:'nearest'});
 }
 function note(frequency, { delay = 0, length = .075, volume = .05, waveform = 'triangle', glideTo } = {}) {
-  if (!state.sound || !audio || audio.state !== 'running') return;
+  if (state.muted || !state.sound || !audio || audio.state !== 'running') return;
   const start = audio.currentTime + delay;
   const oscillator = audio.createOscillator();
   const gain = audio.createGain();
@@ -639,7 +687,7 @@ function note(frequency, { delay = 0, length = .075, volume = .05, waveform = 't
   oscillator.stop(start + length + .01);
 }
 function wakeAudio() {
-  if (!state.sound) return;
+  if (state.muted || !state.sound) return;
   const Context = window.AudioContext || window.webkitAudioContext;
   if (!Context) return;
   try {
@@ -712,6 +760,7 @@ function spinReel(reel, index, pool, target, duration) {
 }
 function setSpinning(value) {
   spinning = value;
+  $('#background-music').volume = value ? .33 : .72;
   if (value) hideAnswer();
   $('#reveal-answer').disabled = value || !canRevealAnswer();
   $('#launch').setAttribute('aria-disabled', String(value));
@@ -765,14 +814,35 @@ async function launch() {
   }
 }
 function updateSound() {
-  $('#sound').textContent = state.sound ? 'Son activé' : 'Son coupé';
-  $('#sound').setAttribute('aria-pressed', String(state.sound));
+  const enabled = !state.muted && (state.sound || state.music);
+  const action = enabled ? 'Couper le son' : 'Activer le son';
+  const button = $('#sound');
+  button.setAttribute('aria-pressed', String(enabled));
+  button.setAttribute('aria-label', action);
+  $('.sound-on', button).toggleAttribute('hidden', !enabled);
+  $('.sound-off', button).toggleAttribute('hidden', enabled);
+  $('#sound-tooltip').textContent = action;
   $('#sound-setting').checked = state.sound;
+  $('#music-setting').checked = state.music;
+  if (audioBus) audioBus.gain.setTargetAtTime(!state.muted && state.sound ? 1 : 0, audio.currentTime, .012);
+  syncMusic();
 }
-function toggleSound() {
-  state.sound = !state.sound;
-  if (state.sound) wakeAudio();
-  if (audioBus) audioBus.gain.setTargetAtTime(state.sound ? 1 : 0, audio.currentTime, .012);
+function syncMusic() {
+  const music = $('#background-music');
+  if (state.muted || !state.music || page !== 'game' || document.hidden) {
+    music.pause();
+  } else if (music.paused) {
+    music.play().catch(() => {}); // The next user gesture retries if autoplay is blocked.
+  }
+}
+function toggleMasterSound() {
+  if (!state.sound && !state.music) {
+    state.sound = true;
+    state.music = true;
+    state.muted = false;
+  } else {
+    state.muted = !state.muted;
+  }
   updateSound();
   persist();
 }
@@ -790,6 +860,7 @@ function setProjection(value) {
 function setPage(nextPage) {
   if (spinning || page === nextPage) return;
   page = nextPage;
+  syncMusic();
   for (const id of ['game', 'settings', 'inventory']) $('#' + id).hidden = page !== id;
   $('#game-actions').hidden = page !== 'game';
   $('#navigation').hidden = page === 'game';
@@ -892,7 +963,7 @@ function renderInventory(resetScroll = false) {
       });
       check.dataset.word = entry.word;
       li.append(label);
-      if (!baseWords.has(entry.word)) {
+      if (state.custom.includes(entry)) {
         const edit = document.createElement('button');
         edit.type = 'button';
         edit.textContent = 'Modifier';
@@ -917,7 +988,8 @@ function renderInventory(resetScroll = false) {
 function syncPresets() {
   const items = [
     [revision, 'Révision générale'],
-    ...groups.map((name, index) => ['group-' + index, name]),
+    [topPreset, '50 verbes les plus fréquents'],
+    ...courseGroups.map((name, index) => ['group-' + index, name]),
     ...state.presets.map(item => [item.id, item.name]),
     [customSelection, 'Sélection personnalisée'],
   ];
@@ -940,8 +1012,11 @@ function applyPreset(id) {
   let selected;
   let tenses;
   if (id === revision) {
-    selected = inventory().map(item => item.word);
+    selected = inventory().filter(item => item.group < courseGroups.length).map(item => item.word);
     tenses = allTenses;
+  } else if (id === topPreset) {
+    selected = frequentWords;
+    tenses = allTenses.filter(tense => tense !== 'subjonctif-passe' && tense !== 'futur-anterieur');
   } else if (id.startsWith('group-')) {
     const group = Number(id.slice(6));
     selected = inventory().filter(item => item.group === group).map(item => item.word);
@@ -1051,7 +1126,7 @@ function initialize() {
   buildReels();
   for (const [index, name] of groups.entries()) {
     $('#group-toggles').append(createGroupToggle(index));
-    $('#verb-series').append(new Option(name, String(index)));
+    if (index < courseGroups.length) $('#verb-series').append(new Option(name, String(index)));
   }
   for (const [index, [id, label]] of tenseEntries.entries()) {
     const control = makeCheckbox(label, selected => {
@@ -1092,8 +1167,18 @@ function initialize() {
     $('#save-preset').focus();
     message('Sélection supprimée.');
   });
-  $('#sound').addEventListener('click', toggleSound);
-  $('#sound-setting').addEventListener('change', toggleSound);
+  $('#sound').addEventListener('click', toggleMasterSound);
+  for (const [selector, key] of [['#sound-setting', 'sound'], ['#music-setting', 'music']]) {
+    $(selector).addEventListener('change', event => {
+      state[key] = event.target.checked;
+      if (state[key]) state.muted = false;
+      updateSound();
+      persist();
+    });
+  }
+  $('#background-music').volume = .72;
+  document.addEventListener('click', syncMusic);
+  document.addEventListener('visibilitychange', syncMusic);
   for (const [selector, step] of [['#slower-value', -.5], ['#higher-value', .5]]) {
     $(selector).addEventListener('click', () => {
       state.duration = durationLimit(state.duration + step);
