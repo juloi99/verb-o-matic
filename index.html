@@ -434,6 +434,7 @@ let locked = [false, false, false];
 let choices = [];
 let feedbackTimer;
 let audio;
+let audioBus;
 let editWord = null;
 let conjugationsPromise;
 let answerRequest = 0;
@@ -622,17 +623,18 @@ async function revealAnswer() {
   }));
   $('#answer-panel').scrollIntoView({block:'nearest'});
 }
-function note(frequency, delay = 0, length = .06, volume = .045) {
+function note(frequency, { delay = 0, length = .075, volume = .05, waveform = 'triangle', glideTo } = {}) {
   if (!state.sound || !audio || audio.state !== 'running') return;
   const start = audio.currentTime + delay;
   const oscillator = audio.createOscillator();
   const gain = audio.createGain();
-  oscillator.type = 'triangle';
-  oscillator.frequency.value = frequency;
+  oscillator.type = waveform;
+  oscillator.frequency.setValueAtTime(frequency, start);
+  if (glideTo) oscillator.frequency.exponentialRampToValueAtTime(glideTo, start + length);
   gain.gain.setValueAtTime(.001, start);
-  gain.gain.exponentialRampToValueAtTime(volume, start + .008);
+  gain.gain.exponentialRampToValueAtTime(volume, start + .006);
   gain.gain.exponentialRampToValueAtTime(.001, start + length);
-  oscillator.connect(gain).connect(audio.destination);
+  oscillator.connect(gain).connect(audioBus);
   oscillator.start(start);
   oscillator.stop(start + length + .01);
 }
@@ -641,9 +643,43 @@ function wakeAudio() {
   const Context = window.AudioContext || window.webkitAudioContext;
   if (!Context) return;
   try {
-    audio ??= new Context();
-    if (audio.state === 'suspended') audio.resume().catch(() => {});
+    if (!audio) {
+      audio = new Context();
+      audioBus = audio.createGain();
+      audioBus.connect(audio.destination);
+    }
+    if (audio.state !== 'running' && audio.state !== 'closed') audio.resume().catch(() => {});
   } catch { /* A browser can deny audio without blocking play. */ }
+}
+const reelSounds = [
+  { interval: 126, notes: [196, 247, 220, 294], stop: [392, 523] },
+  { interval: 96, notes: [294, 349, 330, 392], stop: [494, 659] },
+  { interval: 110, notes: [247, 330, 294, 370], stop: [587, 784] },
+];
+function startReelSound(index, duration) {
+  const voice = reelSounds[index];
+  const start = performance.now();
+  let pulse = 0;
+  let timer = setTimeout(tick, 24 + index * 21);
+  function tick() {
+    const elapsed = performance.now() - start;
+    if (elapsed >= duration - 36) return;
+    const progress = elapsed / duration;
+    const brake = Math.max(0, (progress - .55) / .45);
+    const frequency = voice.notes[pulse % voice.notes.length];
+    note(frequency, {
+      waveform: 'square', length: .038 + brake * .023,
+      volume: pulse % 4 === 0 ? .024 : .016, glideTo: frequency * (.82 - brake * .16),
+    });
+    pulse++;
+    timer = setTimeout(tick, voice.interval * (1 + 2.15 * brake ** 2));
+  }
+  return () => clearTimeout(timer);
+}
+function playReelStop(index) {
+  const [first, second] = reelSounds[index].stop;
+  note(first, { length: .067, volume: .058 });
+  note(second, { delay: .044, length: .11, volume: .041 });
 }
 function spinReel(reel, index, pool, target, duration) {
   const track = $('.track', reel);
@@ -672,7 +708,6 @@ function spinReel(reel, index, pool, target, duration) {
     reel.classList.remove('rolling');
     $('.window', reel).classList.remove('rolling-window');
     reel.classList.add('flash');
-    note([349, 440, 523][index], 0, .085);
   });
 }
 function setSpinning(value) {
@@ -698,30 +733,33 @@ async function launch() {
   const free = locked.flatMap((lock, index) => lock ? [] : [index]);
   const pools = [subjects, state.selected, state.tenses];
   setSpinning(true);
-  const ticking = state.sound && !motion.matches ? setInterval(() => note(187, 0, .037, .017), 142) : null;
   try {
     const total = state.duration * 1000;
-    await Promise.all(free.map((index, order) => {
+    await Promise.all(free.map(async (index, order) => {
       const fractions = free.length === 3 ? [.67, .84, 1] : free.length === 2 ? [.78, 1] : [1];
       const duration = total * fractions[order];
       const reel = $$('.reel')[index];
-      if (!motion.matches && typeof $('.track', reel).animate === 'function') return spinReel(reel, index, pools[index], target, duration);
-      return new Promise(resolve => {
-        setTimeout(() => {
+      const stopSound = startReelSound(index, duration);
+      try {
+        if (!motion.matches && typeof $('.track', reel).animate === 'function') {
+          await spinReel(reel, index, pools[index], target, duration);
+        } else {
+          await new Promise(resolve => setTimeout(resolve, duration));
           showStationary(reel, [neighbor(pools[index], target[index], index),
             displaySlot(target[index], index, target), neighbor(pools[index], target[index], index)]);
-          note([349, 440, 523][index], 0, .085);
-          resolve();
-        }, duration);
-      });
+        }
+        playReelStop(index);
+      } finally {
+        stopSound();
+      }
     }));
     current = target;
     const result = target.map((value, index) => displaySlot(value, index, target)).join(' · ');
     $('#result').textContent = 'Résultat du tirage : ' + result;
-    note(523, 0, .11, .032);
-    note(659, .065, .12, .032);
+    note(523.25, { delay: .12, length: .12, volume: .048 });
+    note(659.25, { delay: .177, length: .13, volume: .043 });
+    note(783.99, { delay: .237, length: .19, volume: .052 });
   } finally {
-    clearInterval(ticking);
     setSpinning(false);
     refreshGame();
   }
@@ -734,6 +772,7 @@ function updateSound() {
 function toggleSound() {
   state.sound = !state.sound;
   if (state.sound) wakeAudio();
+  if (audioBus) audioBus.gain.setTargetAtTime(state.sound ? 1 : 0, audio.currentTime, .012);
   updateSound();
   persist();
 }
@@ -1071,11 +1110,11 @@ function initialize() {
   $('#reveal-answer').addEventListener('click', revealAnswer);
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape' && projection) setProjection(false);
-    if (event.code !== 'Space' || page !== 'game' || event.altKey || event.metaKey || event.ctrlKey ||
-        event.target.closest('input, textarea, select, button, summary, [contenteditable], dialog')) return;
+    const isSpace = event.code === 'Space' || event.key === ' ';
+    if (!isSpace || page !== 'game' || event.altKey || event.metaKey || event.ctrlKey || event.isComposing) return;
     event.preventDefault();
-    if (!event.repeat) launch();
-  });
+    if (!event.repeat) $('#launch').click();
+  }, { capture: true });
   syncChecks();
   syncPresets();
   refreshGame();
