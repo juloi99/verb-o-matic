@@ -128,6 +128,13 @@ button.launch {
 }
 button.launch:active:not([aria-disabled="true"]) { transform: translateY(3px); box-shadow: 0 2px 0 #768738; }
 .keyhint { font-size: .67rem; }
+.answer-button { min-width: min(13rem, 100%); border-color: #676487; }
+.answer-panel {
+  width: min(100%, 32rem); text-align: center;
+  padding: .85rem 1rem; border: 1px solid var(--border); background: var(--panel); border-radius: .8rem;
+}
+.answer-lines { font-size: clamp(1rem, 3vw, 1.65rem); font-weight: 750; color: var(--lime); overflow-wrap: anywhere; }
+.answer-source { display: inline-block; margin-top: .35rem; color: var(--muted); font-size: .75rem; }
 .alert { color: var(--coral); text-align: center; max-width: 40rem; }
 #exit-projection { position: fixed; top: .8rem; right: .8rem; z-index: 5; opacity: .42; }
 #exit-projection:where(:hover,:focus-visible) { opacity: 1; }
@@ -153,6 +160,8 @@ button.launch:active:not([aria-disabled="true"]) { transform: translateY(3px); b
 .group-1 { --accent: var(--violet); }
 .group-2 { --accent: var(--coral); }
 .panel .actions { margin-top: .7rem; }
+.tense-actions { display: flex; flex-wrap: wrap; gap: .45rem; margin-bottom: .6rem; }
+.tense-actions button { min-height: 2.2rem; padding-block: .35rem; }
 .subsection { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
 .choices { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: .15rem .7rem; }
 .choices label, .checkbox-label { display: flex; min-height: 2.25rem; align-items: center; gap: .5rem; }
@@ -240,6 +249,11 @@ dialog textarea { min-height: 6.5rem; resize: vertical; }
     <div class="play-controls">
       <button class="primary launch" id="launch" type="button">Lancer</button>
       <span class="keyhint">Espace pour lancer</span>
+      <button class="answer-button" id="reveal-answer" type="button" aria-expanded="false" aria-controls="answer-panel">Voir la réponse</button>
+      <div class="answer-panel" id="answer-panel" hidden>
+        <div class="answer-lines" id="answer-lines" aria-live="polite"></div>
+        <a class="answer-source" href="LEFFF-LICENSE.txt" target="_blank" rel="noopener">Données de conjugaison Lefff · Licence LGPL-LR</a>
+      </div>
       <p id="game-alert" class="alert" aria-live="polite" hidden></p>
       <p id="result" class="sr-only" role="status"></p>
     </div>
@@ -266,6 +280,10 @@ dialog textarea { min-height: 6.5rem; resize: vertical; }
       </section>
       <section class="panel">
         <div class="panel-heading"><h2>Temps et modes</h2><span class="count" id="tenses-count"></span></div>
+        <div class="tense-actions">
+          <button type="button" id="select-tenses">Tout cocher</button>
+          <button type="button" id="clear-tenses">Tout décocher</button>
+        </div>
         <div class="choices" id="main-tenses"></div>
         <div class="subsection"><h2>Périphrases</h2><div class="choices" id="phrases"></div></div>
       </section>
@@ -327,6 +345,7 @@ dialog textarea { min-height: 6.5rem; resize: vertical; }
 <script id="verb-data" type="application/json">
 [["aboyer","acheter","agir","amener","annoncer","appeler","applaudir","apprécier","appuyer","arrêter","atteindre","attendre","atterrir","augmenter","avancer","avertir","avoir","baisser","bâtir","changer","choisir","commencer","compléter","conduire","confier","confondre","construire","contraindre","correspondre","corriger","couvrir","craindre","crier","cuire","décoller","découvrir","défendre","définir","déménager","dépendre","déplacer","descendre","détendre","détruire","diminuer","divorcer","dormir","échouer","effacer","effrayer","emmener","employer","encourager","enfreindre","ennuyer","entendre","entrouvrir","espérer","essayer","essuyer","éteindre","étendre","être","étudier","exagérer","exercer","exiger","feindre","feuilleter","finir","geler","grandir","grossir","inquiéter","instruire","introduire","jeter","joindre","lancer","lever","maigrir","manger","mélanger","menacer","mener","mentir","monter","mordre","nager","neiger","nettoyer","noyer","offrir","oublier","ouvrir","parler","partager","partir","payer","peindre","peler","pendre","pénétrer","penser","perdre","peser","placer","plaindre","plonger","précéder","préférer","prétendre","produire","projeter","promener","prononcer","protéger","publier","ralentir","ranger","rappeler","rater","réagir","reconduire","recouvrir","réduire","réfléchir","rejeter","rejoindre","remercier","remplir","rendre","renouveler","répéter","répondre","ressentir","réunir","réussir","révéler","rouvrir","s’appeler","s’ennuyer","s’entendre","s’épanouir","s’essuyer","s’étendre","s’exercer","s’inquiéter","se déplacer","se lever","se noyer","se plaindre","se promener","se rappeler","se réunir","se tordre","sécher","séduire","semer","sentir","servir","sortir","souffrir","succéder à","suspendre","teindre","tendre","tordre","traduire","vendre","vérifier","vieillir"],["accourir","admettre","aller","apercevoir","apparaitre","appartenir à","apprendre","boire","comprendre","connaitre","contredire","contrefaire","courir","croire","décevoir","décrire","défaire","devenir","devoir","dire","disparaitre","écrire","élire","émettre","entreprendre","envoyer","faire","inscrire","interdire","intervenir","lire","médire","mettre","mourir","naitre","obtenir","paraitre","parvenir à","permettre","pouvoir","prédire","prendre","prescrire","prévenir","prévoir","promettre","recevoir","reconnaitre","recourir à","redire","refaire","relire","renvoyer","reprendre","retenir","revivre","revoir","rire","s’asseoir","s’inscrire","satisfaire","savoir","se souvenir de","secourir","soumettre","sourire","souscrire","soutenir","surprendre","survivre à","tenir","transmettre","venir","vivre","voir","vouloir"],["abattre","accueillir","acquérir","battre","combattre","conclure","conquérir","convaincre","cueillir","débattre","déplaire","dissoudre","émouvoir","exclure","falloir","fuir","haïr","inclure","interrompre","plaire","pleuvoir","poursuivre","promouvoir","recueillir","requérir","résoudre","rompre","s’enfuir","se battre","se débattre","se plaire","se taire","suffire","suivre","taire","vaincre","valoir"]]
 </script>
+<script src="answers.js"></script>
 <script>
 'use strict';
 const $ = (selector, root = document) => root.querySelector(selector);
@@ -416,6 +435,8 @@ let choices = [];
 let feedbackTimer;
 let audio;
 let editWord = null;
+let conjugationsPromise;
+let answerRequest = 0;
 
 function message(text) {
   const feedback = $('#feedback');
@@ -529,6 +550,7 @@ function refreshGame() {
   current = current.map((value, index) => available[index].includes(value) ? value : null);
   locked = locked.map((lock, index) => lock && Boolean(current[index]));
   choices = computeChoices();
+  $('#reveal-answer').disabled = !canRevealAnswer();
   const warning = getProblem();
   $('#game-alert').hidden = !warning;
   $('#game-alert').textContent = warning;
@@ -549,6 +571,56 @@ function refreshGame() {
       ]);
     }
   });
+}
+function canRevealAnswer() {
+  if (spinning || !current.every(Boolean)) return false;
+  const word = current[1];
+  const entry = inventory().find(item => item.word === word);
+  return Boolean(entry && allowed(current[0], entry, current[2]));
+}
+function hideAnswer() {
+  answerRequest++;
+  $('#answer-panel').hidden = true;
+  $('#answer-lines').replaceChildren();
+  $('#reveal-answer').setAttribute('aria-expanded', 'false');
+  $('#reveal-answer').textContent = 'Voir la réponse';
+}
+function loadConjugations() {
+  conjugationsPromise ??= fetch('conjugations.json').then(response => {
+    if (!response.ok) throw Error('Données de conjugaison indisponibles');
+    return response.json();
+  }).then(data => data.verbs).catch(error => {
+    conjugationsPromise = undefined;
+    throw error;
+  });
+  return conjugationsPromise;
+}
+async function revealAnswer() {
+  if (!canRevealAnswer()) return;
+  if (!$('#answer-panel').hidden) { hideAnswer(); return; }
+  const request = ++answerRequest;
+  const [subject, word, tense] = current;
+  const controls = $('#reveal-answer');
+  const content = $('#answer-lines');
+  controls.setAttribute('aria-expanded', 'true');
+  controls.textContent = 'Masquer la réponse';
+  $('#answer-panel').hidden = false;
+  content.textContent = 'Recherche de la réponse…';
+  let lines;
+  try {
+    if (baseWords.has(word)) {
+      const dictionary = await loadConjugations();
+      const impersonal = displaySlot(subject, 0) === 'il';
+      lines = VerbAnswers.answer(dictionary, {word, person: subjects.indexOf(subject), tense, impersonal})?.lines;
+    }
+  } catch { /* Keep the interaction usable when the lexicon is unavailable. */ }
+  if (request !== answerRequest) return;
+  content.replaceChildren(...(lines ?? ['Réponse non disponible']).map(form => {
+    const line = document.createElement('p');
+    line.textContent = form;
+    return line;
+  }));
+  $('#answer-panel').scrollIntoView({block:'nearest'});
 }
 function note(frequency, delay = 0, length = .06, volume = .045) {
   if (!state.sound || !audio || audio.state !== 'running') return;
@@ -605,6 +677,8 @@ function spinReel(reel, index, pool, target, duration) {
 }
 function setSpinning(value) {
   spinning = value;
+  if (value) hideAnswer();
+  $('#reveal-answer').disabled = value || !canRevealAnswer();
   $('#launch').setAttribute('aria-disabled', String(value));
   $('#launch').textContent = value ? 'Ça tourne…' : 'Lancer';
   $$('.preset-select, .top [data-page]').forEach(control => { control.disabled = value; });
@@ -734,6 +808,8 @@ function syncChecks() {
   for (const input of $$('[data-tense]')) input.checked = state.tenses.includes(input.dataset.tense);
   $('#verbs-count').textContent = state.selected.length + ' sélectionnés';
   $('#tenses-count').textContent = state.tenses.length + ' sélectionnés';
+  $('#select-tenses').disabled = state.tenses.length === allTenses.length;
+  $('#clear-tenses').disabled = state.tenses.length === 0;
   $('#inventory-count').textContent = state.selected.length + ' / ' + inventory().length + ' sélectionnés';
 }
 function changeSelection() {
@@ -741,6 +817,7 @@ function changeSelection() {
   commitSettings();
 }
 function commitSettings() {
+  hideAnswer();
   syncChecks();
   syncPresets();
   refreshGame();
@@ -761,7 +838,7 @@ function renderInventory(resetScroll = false) {
       .sort((a, b) => collator.compare(a.word, b.word));
     if (!matches.length) continue;
     const section = document.createElement('section');
-    section.className = 'inventory-group';
+    section.className = 'inventory-group group-' + group;
     section.append(createGroupToggle(group));
     const list = document.createElement('ul');
     for (const entry of matches) {
@@ -953,6 +1030,16 @@ function initialize() {
   $$('[data-close]').forEach(button => button.addEventListener('click', () => button.closest('dialog').close()));
   $$('.preset-select').forEach(select => select.addEventListener('change', () => applyPreset(select.value)));
   $('#search').addEventListener('input', () => renderInventory(true));
+  $('#select-tenses').addEventListener('click', () => {
+    state.tenses = [...allTenses];
+    changeSelection();
+    $('#clear-tenses').focus();
+  });
+  $('#clear-tenses').addEventListener('click', () => {
+    state.tenses = [];
+    changeSelection();
+    $('#select-tenses').focus();
+  });
   $('#verb-form').addEventListener('submit', saveVerbs);
   $('#preset-form').addEventListener('submit', savePreset);
   $('#save-preset').addEventListener('click', () => {
@@ -981,6 +1068,7 @@ function initialize() {
   $('#import').addEventListener('click', () => $('#import-file').click());
   $('#import-file').addEventListener('change', importState);
   $('#launch').addEventListener('click', launch);
+  $('#reveal-answer').addEventListener('click', revealAnswer);
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape' && projection) setProjection(false);
     if (event.code !== 'Space' || page !== 'game' || event.altKey || event.metaKey || event.ctrlKey ||
