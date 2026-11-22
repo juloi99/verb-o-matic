@@ -1,0 +1,1457 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Trois rouleaux pour s’entraîner à conjuguer les verbes français.">
+<meta name="theme-color" content="#11121d">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10' fill='%23dffa73'/%3E%3Cpath d='M13 15v18m11-18v18m11-18v18' stroke='%23151524' stroke-width='6' stroke-linecap='round' stroke-dasharray='6 6'/%3E%3C/svg%3E">
+<title>Verb-o-matic</title>
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #11121d; --panel: #191a28; --raised: #232439; --border: #41435b;
+  --text: #f7f4ff; --muted: #b2b3cb; --ink: #151524;
+  --lime: #dffa73; --violet: #b7a4fc; --coral: #ffb1a5;
+  --mono: ui-monospace, SFMono-Regular, Consolas, monospace;
+  --heavy: "Arial Black", "Arial Bold", system-ui, sans-serif;
+  font: 100%/1.45 system-ui, sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; min-width: 280px; color: var(--text); background: var(--bg); }
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: -1;
+  background: radial-gradient(ellipse at 50% 31%, #24213d 0, transparent 65%),
+              radial-gradient(#34344c 1px, transparent 1px) 0 0 / 22px 22px;
+}
+button, input, select, textarea { font: inherit; }
+button, select, summary { cursor: pointer; }
+button, select, input[type="search"], input[type="text"], textarea {
+  min-height: 2.65rem; border: 1px solid var(--border); border-radius: .65rem;
+  background: var(--raised); color: var(--text);
+}
+button { padding: .55rem .9rem; font-size: .9rem; font-weight: 680; }
+button:hover:not(:disabled):not([aria-disabled="true"]) { border-color: var(--violet); background: #303149; }
+button:disabled, button[aria-disabled="true"], select:disabled { opacity: .6; cursor: default; }
+button.primary {
+  background: var(--lime); color: var(--ink); border-color: var(--lime);
+}
+button.primary:hover:not([aria-disabled="true"]) { background: #edff9b; border-color: #edff9b; }
+:focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; }
+select {
+  appearance: none; padding: .5rem 2.2rem .5rem .75rem; max-width: 100%;
+  background: var(--raised) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='m4 6 4 4 4-4' fill='none' stroke='%23b7a4fc' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right .65rem center / 1rem;
+}
+input[type="checkbox"] { accent-color: var(--accent, var(--lime)); width: 1.1rem; height: 1.1rem; margin: 0; flex: none; }
+input[type="search"], input[type="text"], textarea { width: 100%; padding: .55rem .75rem; }
+input::placeholder, textarea::placeholder { color: var(--muted); }
+label { cursor: pointer; }
+h1, h2, h3, p, ul { margin: 0; }
+h1, .brand h2 { font: 900 clamp(1.65rem, 5vw, 2.5rem)/1.12 var(--heavy); letter-spacing: -.035em; }
+h2 { font-size: 1.3rem; }
+small, .muted { color: var(--muted); }
+.shell { width: min(100% - 2.5rem, 76rem); margin-inline: auto; }
+.top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .8rem; padding-block: 1.4rem; }
+.brand { display: flex; align-items: center; gap: .75rem; }
+.brand h2 { font-size: clamp(1.25rem, 4vw, 1.8rem); }
+.logo { display: flex; justify-content: center; align-items: center; gap: 3px; width: 2.65rem; height: 2.65rem; border-radius: .63rem; background: var(--lime); }
+.logo i { width: 5px; height: 1.15rem; background: linear-gradient(var(--ink) 38%, #a8c242 38% 62%, var(--ink) 62%); border-radius: 2px; }
+.actions, .nav, .inline, .dialog-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .55rem; }
+.icon-action { position: relative; }
+.icon-button { display: grid; place-items: center; width: 2.75rem; height: 2.75rem; padding: 0; }
+.icon-button .icon { width: 1.28rem; height: 1.28rem; }
+.icon-button[aria-pressed="false"] { color: var(--muted); }
+[data-session-control] .record-symbol { fill: var(--coral); stroke: none; }
+[data-session-control][aria-pressed="true"] { color: var(--coral); border-color: var(--coral); }
+[data-session-control][aria-pressed="true"] .record-symbol,
+[data-session-control][aria-pressed="false"] .stop-symbol { display: none; }
+[data-session-control] .stop-symbol { fill: currentColor; stroke: none; }
+.projection-session { display: none; }
+.projection .projection-session { display: block; position: fixed; top: .8rem; left: .8rem; z-index: 5; }
+.projection-session .icon-tooltip { left: 0; right: auto; }
+.session-copy { display: grid; gap: .6rem; padding-left: 1.25rem; }
+.session-copy li::marker { color: var(--lime); font-weight: 800; }
+.session-dialog { width: min(42rem, calc(100% - 1.25rem)); }
+.session-dialog > :is(p, ol, dl, fieldset, footer) { margin-block: .8rem 0; }
+.session-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; }
+.session-stats > div { min-width: 0; padding: .6rem .45rem; text-align: center; border: 1px solid var(--border); border-radius: .65rem; background: var(--raised); }
+.session-stats dt { color: var(--muted); font-size: clamp(.7rem, 2.4vw, .9rem); }
+.session-stats dd { margin: .12rem 0 0; color: var(--lime); font: 800 clamp(.95rem, 4vw, 1.6rem)/1.2 var(--mono); }
+.session-chips { display: flex; flex-wrap: wrap; gap: .35rem; list-style: none; padding: .35rem 0 0; }
+.session-chips li { padding: .19rem .55rem; border: 1px solid var(--border); border-radius: 1rem; background: var(--raised); font-size: .8rem; overflow-wrap: anywhere; }
+.session-section { margin-top: .75rem; }
+.session-section h3 { font-size: .93rem; }
+.session-rating { min-width: 0; padding: 0; border: 0; }
+.session-rating legend { font-weight: 750; padding: 0; }
+.rating-scale { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: .32rem; margin-top: .33rem; }
+.rating-scale label { display: grid; min-height: 2.3rem; place-items: center; border: 1px solid var(--border); border-radius: .48rem; background: var(--raised); font: 750 .9rem/1 var(--mono); }
+.rating-scale label:hover { border-color: var(--lime); }
+.rating-scale label:has(:checked) { color: var(--ink); background: var(--lime); border-color: var(--lime); }
+.rating-scale label:has(:focus-visible) { outline: 2px solid var(--violet); outline-offset: 2px; }
+#session-score-value { color: var(--lime); margin-left: .45rem; font-family: var(--mono); }
+.session-portfolio { padding: .6rem .7rem; border-left: 3px solid var(--violet); background: var(--raised); }
+@media (max-width: 460px) { .rating-scale { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+.icon-tooltip {
+  position: absolute; top: calc(100% + .45rem); right: 0; z-index: 6;
+  width: max-content; max-width: 13rem; padding: .32rem .5rem; border: 1px solid var(--border);
+  border-radius: .4rem; background: var(--raised); color: var(--text); font-size: .78rem;
+  opacity: 0; visibility: hidden; pointer-events: none;
+}
+.icon-action:hover .icon-tooltip, .icon-action:focus-within .icon-tooltip { opacity: 1; visibility: visible; }
+.volume-popover {
+  position: absolute; top: 100%; right: 0; z-index: 7;
+  width: 13rem; padding-top: .45rem; visibility: hidden;
+}
+.icon-action:hover .volume-popover, .icon-action:focus-within .volume-popover { visibility: visible; }
+.volume-panel { display: grid; gap: .3rem; padding: .62rem .7rem; border: 1px solid var(--border); border-radius: .55rem; background: var(--raised); box-shadow: 0 8px 20px #0b0b147a; font-size: .8rem; }
+.volume-label { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+[data-music-level] { color: var(--lime); font-family: var(--mono); font-variant-numeric: tabular-nums; }
+[data-music-volume] { width: 100%; margin: 0; min-height: 1.45rem; accent-color: var(--lime); cursor: pointer; }
+.settings-volume { display: grid; gap: .1rem; width: min(16rem, 100%); margin-top: .4rem; font-size: .9rem; }
+@media (max-width: 430px) { .volume-popover { right: -6rem; width: 9rem; } }
+.nav button[aria-current="page"] { border-color: var(--lime); color: var(--lime); }
+#game { min-height: calc(100dvh - 6rem); display: grid; align-content: center; padding-block: .55rem 1rem; }
+.cabinet {
+  position: relative; background: linear-gradient(145deg,#27283e,#1b1c2d 75%); border: 1px solid #555673;
+  padding: clamp(.75rem, 2.6vw, 2.05rem); border-radius: clamp(1rem, 2.8vw, 2rem);
+  box-shadow: inset 0 0 0 6px #1b1c2d, 0 10px 0 #0c0d17, 0 18px 45px #090a137b;
+}
+.game-toolbar {
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .6rem 1rem;
+  padding-bottom: .9rem; border-bottom: 1px solid var(--border); margin-bottom: clamp(.7rem, 2vw, 1.4rem);
+}
+.preset-control { display: flex; align-items: center; flex-wrap: wrap; gap: .65rem; }
+.preset-control label, .reel-title, .keyhint, .count { font-family: var(--mono); }
+.preset-control label, .reel-title, .keyhint { color: var(--muted); font-size: .78rem; font-weight: 750; text-transform: uppercase; letter-spacing: .1em; }
+.preset-control select { min-height: 2.3rem; }
+.count { font-size: .75rem; color: var(--accent, var(--lime)); }
+.reels { display: grid; grid-template-columns: .83fr 1fr 1.05fr; gap: clamp(.38rem, 1.6vw, 1.35rem); }
+.reel { min-width: 0; --accent: var(--violet); --paper: #f0eafe; --cell: clamp(4rem, 11vh, 7rem); }
+.reel:nth-child(2) { --accent: var(--lime); --paper: #f1f8da; }
+.reel:nth-child(3) { --accent: var(--coral); --paper: #fff0eb; }
+.reel-top { display: flex; justify-content: space-between; align-items: center; gap: .25rem; margin-bottom: .55rem; }
+.reel-title { color: var(--accent); }
+.lock { display: grid; place-items: center; width: 2.45rem; min-height: 2.35rem; padding: 0; }
+.lock[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); }
+.lock svg, .icon { width: 1.15rem; height: 1.15rem; vertical-align: middle; fill: none; stroke: currentColor; stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round; }
+.window {
+  position: relative; overflow: hidden; isolation: isolate;
+  height: calc(2.35 * var(--cell)); border-radius: clamp(.5rem, 1.7vw, 1.15rem);
+  border: 1px solid var(--accent); background: #212136;
+}
+.window::before, .window::after, .selection-band { position: absolute; pointer-events: none; inset-inline: 0; }
+.window::before {
+  content: ""; inset-block: 0; z-index: 2;
+  background: linear-gradient(#131323a0, transparent 23%, transparent 77%, #131323a0);
+  box-shadow: inset 0 0 0 4px #16162599; border-radius: inherit;
+}
+.selection-band {
+  height: var(--cell); top: 50%; transform: translateY(-50%);
+  background: var(--paper); border-block: 2px solid var(--accent);
+}
+.track { position: absolute; inset-inline: 0; top: 50%; will-change: transform; }
+.slot {
+  display: flex; align-items: center; justify-content: center; height: var(--cell); padding: .16rem .4rem;
+  text-align: center; font-weight: 700; color: #b9b9d0; font-size: clamp(.65rem, 2.1vw, 1.15rem);
+  overflow-wrap: anywhere; line-height: 1.07;
+}
+.slot.active, .reel.rolling .slot {
+  font: 900 clamp(1.1rem, 4vw, 3.7rem)/1.04 var(--heavy); letter-spacing: -.035em;
+}
+.slot.active { color: var(--ink); }
+.reel:nth-child(3) .slot.active, .reel:nth-child(3).rolling .slot {
+  font-size: min(clamp(1rem, 3.4vw, 3.15rem), calc(var(--cell) / 2.35));
+}
+.slot.long.active, .reel.rolling .slot.long { font-size: clamp(.88rem, 2.8vw, 2.6rem); }
+.window.rolling-window { background: linear-gradient(#242439 0 29%, #34354d 49% 53%, #242439 71%); }
+.rolling .selection-band { background: #0000; opacity: .44; }
+.indicator {
+  display: block; width: 1.65rem; height: .22rem; margin: 1rem auto 0; border-radius: 3rem;
+  background: var(--accent); box-shadow: 0 0 .8rem color-mix(in srgb,var(--accent) 40%,transparent);
+}
+.rolling .indicator { opacity: .35; }
+.flash .window { animation: land .38s ease-out; }
+@keyframes land { 35% { box-shadow: 0 0 1.35rem color-mix(in srgb,var(--accent) 70%,transparent); } }
+.play-controls { display: grid; justify-items: center; gap: .65rem; margin-top: clamp(1.35rem, 3.6vh, 2.4rem); }
+button.launch {
+  min-width: min(16rem, 100%); min-height: 3.6rem; font: 900 1.55rem/1.1 var(--heavy);
+  box-shadow: 0 5px 0 #768738; border-radius: .85rem;
+}
+button.launch:active:not([aria-disabled="true"]) { transform: translateY(3px); box-shadow: 0 2px 0 #768738; }
+.keyhint { font-size: .67rem; }
+.answer-button { min-width: min(13rem, 100%); border-color: #676487; }
+.answer-panel {
+  width: min(100%, 32rem); text-align: center;
+  padding: .85rem 1rem; border: 1px solid var(--border); background: var(--panel); border-radius: .8rem;
+}
+.answer-lines { font-size: clamp(1rem, 3vw, 1.65rem); font-weight: 750; color: var(--lime); overflow-wrap: anywhere; }
+.answer-source { display: inline-block; margin-top: .35rem; color: var(--muted); font-size: .75rem; }
+.alert { color: var(--coral); text-align: center; max-width: 40rem; }
+#exit-projection { position: fixed; top: .8rem; right: .8rem; z-index: 5; opacity: .42; }
+#exit-projection:where(:hover,:focus-visible) { opacity: 1; }
+.projection .top, .projection .game-toolbar, .projection .lock, .projection .keyhint { display: none; }
+.projection #game { min-height: 100dvh; padding-top: 3.1rem; }
+.projection .reel { --cell: clamp(4.25rem, 15vh, 10rem); }
+.projection .slot.active { font-size: clamp(1.05rem, 5.1vw, 4.4rem); }
+.projection .reel:nth-child(3) .slot.active {
+  font-size: min(clamp(1rem, 4vw, 3.7rem), calc(var(--cell) / 2.35));
+}
+.projection .slot.long.active { font-size: clamp(.92rem, 3.25vw, 3rem); }
+.screen { margin-block: 1.25rem 2.5rem; }
+.screen > .muted { margin-top: .5rem; }
+.settings-grid { display: grid; grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr); gap: 1rem; margin-top: 1.4rem; }
+.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 1rem; padding: clamp(.85rem, 2vw, 1.45rem); }
+.panel-heading { display: flex; justify-content: space-between; gap: .7rem; align-items: baseline; margin-bottom: .9rem; }
+.group-toggle {
+  display: flex; align-items: center; gap: .75rem; min-height: 2.8rem;
+  padding: .5rem .72rem; margin-bottom: .45rem; border: 1px solid #35364b; background: var(--raised); border-radius: .55rem;
+}
+.group-toggle .count { margin-left: auto; flex: none; }
+.group-0 { --accent: var(--lime); }
+.group-1 { --accent: var(--violet); }
+.group-2 { --accent: var(--coral); }
+.group-3 { --accent: #82e4dd; }
+.audio-settings { margin-top: 1rem; }
+.audio-settings .inline { column-gap: 1.4rem; }
+.panel .actions { margin-top: .7rem; }
+.tense-actions { display: flex; flex-wrap: wrap; gap: .45rem; margin-bottom: .6rem; }
+.tense-actions button { min-height: 2.2rem; padding-block: .35rem; }
+.subsection { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+.choices { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: .15rem .7rem; }
+.choices label, .checkbox-label { display: flex; min-height: 2.25rem; align-items: center; gap: .5rem; }
+.advanced { margin-top: 1rem; }
+.advanced summary { font-size: 1.08rem; font-weight: 750; }
+.advanced-controls, .inventory-bar { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; margin-top: .85rem; }
+.stepper { display: inline-flex; align-items: center; gap: .35rem; }
+.stepper button { min-width: 2.5rem; padding: .35rem; }
+.stepper output { min-width: 3.4rem; text-align: center; font-family: var(--mono); color: var(--lime); }
+.inventory-bar > input { flex: 1 1 13rem; max-width: 28rem; }
+.inventory-list {
+  height: min(61dvh, 37rem); min-height: 13rem; overflow: auto; overscroll-behavior: contain;
+  margin-top: .85rem; border: 1px solid var(--border); border-radius: .85rem; background: var(--panel);
+  scrollbar-color: #666984 var(--panel);
+}
+.inventory-group .group-toggle {
+  position: sticky; top: 0; z-index: 1; border-width: 0 0 1px; border-radius: 0; margin: 0;
+  padding-inline: clamp(.55rem, 2vw, 1.2rem); background: #25263a;
+}
+.inventory-group ul { padding: .4rem clamp(.55rem, 2vw, 1.2rem) .75rem; list-style: none; }
+.verb-item { display: flex; align-items: center; justify-content: space-between; min-height: 2.1rem; border-bottom: 1px solid #282a3d; }
+.verb-item label { display: flex; flex: 1; align-items: center; gap: .7rem; padding-block: .28rem; overflow-wrap: anywhere; }
+.verb-item small { margin-inline: .65rem; }
+.verb-item button { min-height: 1.85rem; padding: .1rem .45rem; font-size: .78rem; }
+.empty-list { padding: 1rem; }
+dialog {
+  width: min(100% - 1.5rem, 33rem); max-height: calc(100% - 1.5rem); padding: 1.4rem;
+  color: var(--text); background: var(--panel); border: 1px solid var(--border); border-radius: 1rem;
+}
+dialog::backdrop { background: #080913bd; }
+dialog form { display: grid; gap: .8rem; }
+dialog form > label { display: grid; gap: .3rem; }
+dialog textarea { min-height: 6.5rem; resize: vertical; }
+.dialog-actions { justify-content: flex-end; }
+.flash-message {
+  position: fixed; z-index: 6; inset: auto 1rem 1rem auto; max-width: min(28rem, 100% - 2rem);
+  border: 1px solid var(--violet); border-radius: .7rem; padding: .7rem .88rem; background: #282940;
+}
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (max-width: 700px) {
+  .shell { width: calc(100% - 1.15rem); }
+  .top { padding-block: .8rem; }
+  #game { min-height: calc(100dvh - 8rem); }
+  .settings-grid { grid-template-columns: minmax(0,1fr); }
+  .reels { grid-template-columns: .78fr 1fr 1.05fr; }
+  .reel-title { font-size: .67rem; letter-spacing: .035em; }
+  .lock { width: 1.8rem; min-height: 1.9rem; }
+  .game-toolbar > .count { display: none; }
+}
+@media (max-width: 390px) {
+  .choices { grid-template-columns: minmax(0,1fr); }
+  .top .actions > button { padding-inline: .55rem; }
+  .reel-title { font-size: .6rem; }
+}
+@media (prefers-reduced-motion: reduce) { .flash .window { animation: none; } }
+</style>
+</head>
+<body>
+<header class="top shell">
+  <div class="brand"><span class="logo" aria-hidden="true"><i></i><i></i><i></i></span><h2>Verb-o-matic</h2></div>
+  <div class="actions" id="game-actions">
+    <span class="icon-action">
+      <button type="button" class="icon-button" data-session-control aria-pressed="false" aria-label="Enregistrer ma session"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle class="record-symbol" cx="12" cy="12" r="6"/><rect class="stop-symbol" x="6.5" y="6.5" width="11" height="11" rx="2"/></svg></button>
+      <span class="icon-tooltip" data-session-tip aria-hidden="true">Enregistrer ma session</span>
+    </span>
+    <div class="icon-action">
+      <button type="button" class="icon-button" id="sound" aria-label="Son général" aria-pressed="true">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="sound-on" d="M16 9a4 4 0 0 1 0 6m2-8a7 7 0 0 1 0 10"/><path class="sound-off" d="m17 10 4 4m0-4-4 4" hidden/></svg>
+      </button>
+      <div class="volume-popover">
+        <div class="volume-panel">
+          <span class="muted" id="sound-tooltip" aria-hidden="true">Couper le son</span>
+          <label class="volume-label" for="music-volume-home">Volume de la musique <output data-music-level>72 %</output></label>
+          <input id="music-volume-home" data-music-volume type="range" min="0" max="100" value="72">
+        </div>
+      </div>
+    </div>
+    <span class="icon-action">
+      <button type="button" class="icon-button" id="projection" aria-label="Projection"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4m-2-13 4 2.5-4 2.5z"/></svg></button>
+      <span class="icon-tooltip" aria-hidden="true">Mode projection</span>
+    </span>
+    <span class="icon-action">
+      <button type="button" class="icon-button" data-page="settings" aria-label="Réglages"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h7m4 0h5M4 12h3m4 0h9M4 18h10m4 0h2"/><circle cx="13" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="16" cy="18" r="2"/></svg></button>
+      <span class="icon-tooltip" aria-hidden="true">Réglages</span>
+    </span>
+  </div>
+  <nav class="nav" id="navigation" aria-label="Navigation" hidden>
+    <span class="icon-action">
+      <button type="button" class="icon-button" data-page="game" aria-label="Jouer"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5a.75.75 0 0 0-1.15.64v11.72A.75.75 0 0 0 8 18.5l10-5.86a.75.75 0 0 0 0-1.28z"/></svg></button>
+      <span class="icon-tooltip" aria-hidden="true">Jouer</span>
+    </span>
+    <button type="button" data-page="settings">Réglages</button>
+    <button type="button" data-page="inventory">Inventaire</button>
+  </nav>
+</header>
+<main class="shell">
+  <section id="game" aria-label="Jeu">
+    <span class="icon-action projection-session">
+      <button type="button" class="icon-button" data-session-control aria-pressed="false" aria-label="Enregistrer ma session"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle class="record-symbol" cx="12" cy="12" r="6"/><rect class="stop-symbol" x="6.5" y="6.5" width="11" height="11" rx="2"/></svg></button>
+      <span class="icon-tooltip" data-session-tip aria-hidden="true">Enregistrer ma session</span>
+    </span>
+    <button type="button" id="exit-projection" hidden>Quitter la projection</button>
+    <div class="cabinet">
+      <div class="game-toolbar">
+        <div class="preset-control">
+          <label for="quick-preset">Sélection</label>
+          <select id="quick-preset" class="preset-select"></select>
+        </div>
+        <span class="count" id="game-count"></span>
+      </div>
+      <div class="reels" id="reels"></div>
+    </div>
+    <div class="play-controls">
+      <button class="primary launch" id="launch" type="button">Lancer</button>
+      <span class="keyhint">Espace pour lancer</span>
+      <button class="answer-button" id="reveal-answer" type="button" aria-expanded="false" aria-controls="answer-panel">Voir la réponse</button>
+      <div class="answer-panel" id="answer-panel" hidden>
+        <div class="answer-lines" id="answer-lines" aria-live="polite"></div>
+        <a class="answer-source" href="LEFFF-LICENSE.txt" target="_blank" rel="noopener">Données de conjugaison Lefff · Licence LGPL-LR</a>
+      </div>
+      <p id="game-alert" class="alert" aria-live="polite" hidden></p>
+      <p id="result" class="sr-only" role="status"></p>
+    </div>
+  </section>
+  <section id="settings" class="screen" hidden>
+    <h1>Réglages du tirage</h1>
+    <p class="muted">Tes réglages sont enregistrés dans ce navigateur.</p>
+    <div class="settings-grid">
+      <section class="panel">
+        <div class="panel-heading"><h2>Verbes</h2><span class="count" id="verbs-count"></span></div>
+        <div id="group-toggles"></div>
+        <div class="actions">
+          <button type="button" data-page="inventory">Ouvrir l’inventaire</button>
+          <button type="button" data-add>+ Ajouter des verbes</button>
+        </div>
+        <div class="subsection">
+          <h2>Sélections enregistrées</h2>
+          <div class="actions">
+            <select class="preset-select" aria-label="Sélections enregistrées"></select>
+            <button type="button" id="save-preset">Enregistrer la sélection</button>
+            <button type="button" id="reset-preset" hidden>Rétablir la sélection d’origine</button>
+            <button type="button" id="delete-preset" hidden>Supprimer cette sélection</button>
+          </div>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel-heading"><h2>Temps et modes</h2><span class="count" id="tenses-count"></span></div>
+        <div class="tense-actions">
+          <button type="button" id="select-tenses">Tout cocher</button>
+          <button type="button" id="clear-tenses">Tout décocher</button>
+        </div>
+        <div class="choices" id="main-tenses"></div>
+        <div class="subsection"><h2>Périphrases</h2><div class="choices" id="phrases"></div></div>
+      </section>
+    </div>
+    <section class="panel audio-settings" aria-labelledby="audio-heading">
+      <h2 id="audio-heading">Son</h2>
+      <div class="inline">
+        <label class="checkbox-label"><input type="checkbox" id="music-setting"> Musique de fond</label>
+        <label class="checkbox-label"><input type="checkbox" id="sound-setting"> Effets sonores</label>
+      </div>
+      <div class="settings-volume">
+        <label class="volume-label" for="music-volume-settings">Volume de la musique <output data-music-level>72 %</output></label>
+        <input id="music-volume-settings" data-music-volume type="range" min="0" max="100" value="72">
+      </div>
+    </section>
+    <details class="panel advanced" id="advanced">
+      <summary>Mode avancé</summary>
+      <div class="advanced-controls">
+        <div class="inline">
+          <span>Durée du tirage</span>
+          <span class="stepper">
+            <button type="button" id="slower-value" aria-label="Réduire la durée">−</button>
+            <output id="duration" aria-live="polite"></output>
+            <button type="button" id="higher-value" aria-label="Augmenter la durée">+</button>
+          </span>
+        </div>
+        <div class="actions">
+          <button type="button" id="import">Importer</button>
+          <button type="button" id="export">Exporter</button>
+          <input type="file" id="import-file" accept=".json,application/json" hidden>
+        </div>
+      </div>
+    </details>
+  </section>
+  <section id="inventory" class="screen" hidden>
+    <h1>Inventaire des verbes</h1>
+    <p class="muted">Coche une série entière ou choisis les verbes un par un.</p>
+    <div class="inventory-bar">
+      <input type="search" id="search" aria-label="Rechercher un verbe" placeholder="Rechercher un verbe…">
+      <span class="count" id="inventory-count"></span>
+      <button type="button" class="primary" data-add>+ Ajouter des verbes</button>
+    </div>
+    <div id="inventory-list" class="inventory-list" tabindex="0" role="region" aria-label="Liste des verbes"></div>
+  </section>
+</main>
+<dialog id="session-guide" class="session-dialog" aria-labelledby="session-guide-title">
+  <h2 id="session-guide-title">Enregistre ta session</h2>
+  <ol class="session-copy">
+    <li>Démarre l’enregistrement et joue. Tu peux changer de sélection en cours de session.</li>
+    <li>Clique sur le carré en haut de l’écran pour arrêter, puis confirme.</li>
+    <li>Évalue ta session sur 10 et prends une capture du bilan pour ton portfolio.</li>
+  </ol>
+  <footer class="dialog-actions"><button type="button" data-close>Annuler</button><button type="button" class="primary" id="start-session">Démarrer l’enregistrement</button></footer>
+</dialog>
+<dialog id="session-stop" class="session-dialog" aria-labelledby="session-stop-title">
+  <h2 id="session-stop-title">Terminer la session ?</h2>
+  <p>Confirme pour afficher ton bilan et t’autoévaluer.</p>
+  <footer class="dialog-actions"><button type="button" data-close autofocus>Continuer à jouer</button><button type="button" class="primary" id="finish-session">Terminer et voir le bilan</button></footer>
+</dialog>
+<dialog id="session-summary" class="session-dialog" aria-labelledby="session-summary-title">
+  <h2 id="session-summary-title" tabindex="-1">Bilan de ma session</h2>
+  <dl class="session-stats">
+    <div><dt>Temps de jeu</dt><dd id="session-time"></dd></div>
+    <div><dt>Tirages</dt><dd id="session-spins"></dd></div>
+    <div><dt>Verbes différents</dt><dd id="session-verbs"></dd></div>
+  </dl>
+  <section class="session-section" aria-labelledby="session-tenses-title">
+    <h3 id="session-tenses-title">Temps tirés</h3><ul class="session-chips" id="session-tenses"></ul>
+  </section>
+  <section class="session-section" aria-labelledby="session-categories-title">
+    <h3 id="session-categories-title">Sélections jouées</h3><ul class="session-chips" id="session-categories"></ul>
+  </section>
+  <fieldset class="session-rating">
+    <legend>Mon autoévaluation<output id="session-score-value" aria-live="polite"></output></legend>
+    <div class="rating-scale" id="session-scores"></div>
+  </fieldset>
+  <p class="session-portfolio">Prends une capture d’écran de ce bilan avec ta note. Ajoute-la à ton portfolio d’entraînement pour la partager avec ton professeur.</p>
+  <footer class="dialog-actions"><button type="button" data-close>Fermer le bilan</button></footer>
+</dialog>
+<audio id="background-music" src="arcade-loop.wav" preload="none" loop></audio>
+<dialog id="verb-dialog">
+  <form id="verb-form">
+    <h2 id="verb-dialog-title">Ajouter des verbes</h2>
+    <label id="entry-label">Infinitifs<textarea id="verb-input" required placeholder="Un verbe par ligne, ou séparé par une virgule"></textarea></label>
+    <label>Série<select id="verb-series"></select></label>
+    <label>Restriction<select id="verb-restriction">
+      <option value="auto">Automatique</option>
+      <option value="no-imperative">Sans impératif</option>
+      <option value="impersonal">Impersonnel · seulement il</option>
+    </select></label>
+    <p class="alert" id="verb-error" role="alert" hidden></p>
+    <div class="dialog-actions"><button type="button" data-close>Annuler</button><button class="primary" type="submit" id="verb-submit">Ajouter</button></div>
+  </form>
+</dialog>
+<dialog id="preset-dialog">
+  <form id="preset-form">
+    <h2>Enregistrer la sélection</h2>
+    <label>Nom de la sélection<input id="preset-name" type="text" required maxlength="60"></label>
+    <p class="alert" id="preset-error" role="alert" hidden></p>
+    <div class="dialog-actions"><button type="button" data-close>Annuler</button><button class="primary" type="submit">Enregistrer</button></div>
+  </form>
+</dialog>
+<p class="flash-message" id="feedback" role="status" hidden></p>
+<script id="verb-data" type="application/json">
+[["aboyer","acheter","agir","amener","annoncer","appeler","applaudir","apprécier","appuyer","arrêter","atteindre","attendre","atterrir","augmenter","avancer","avertir","avoir","baisser","bâtir","changer","choisir","commencer","compléter","conduire","confier","confondre","construire","contraindre","correspondre","corriger","couvrir","craindre","crier","cuire","décoller","découvrir","défendre","définir","déménager","dépendre","déplacer","descendre","détendre","détruire","diminuer","divorcer","dormir","échouer","effacer","effrayer","emmener","employer","encourager","enfreindre","ennuyer","entendre","entrouvrir","espérer","essayer","essuyer","éteindre","étendre","être","étudier","exagérer","exercer","exiger","feindre","feuilleter","finir","geler","grandir","grossir","inquiéter","instruire","introduire","jeter","joindre","lancer","lever","maigrir","manger","mélanger","menacer","mener","mentir","monter","mordre","nager","neiger","nettoyer","noyer","offrir","oublier","ouvrir","parler","partager","partir","payer","peindre","peler","pendre","pénétrer","penser","perdre","peser","placer","plaindre","plonger","précéder","préférer","prétendre","produire","projeter","promener","prononcer","protéger","publier","ralentir","ranger","rappeler","rater","réagir","reconduire","recouvrir","réduire","réfléchir","rejeter","rejoindre","remercier","remplir","rendre","renouveler","répéter","répondre","ressentir","réunir","réussir","révéler","rouvrir","s’appeler","s’ennuyer","s’entendre","s’épanouir","s’essuyer","s’étendre","s’exercer","s’inquiéter","se déplacer","se lever","se noyer","se plaindre","se promener","se rappeler","se réunir","se tordre","sécher","séduire","semer","sentir","servir","sortir","souffrir","succéder à","suspendre","teindre","tendre","tordre","traduire","vendre","vérifier","vieillir"],["accourir","admettre","aller","apercevoir","apparaitre","appartenir à","apprendre","boire","comprendre","connaitre","contredire","contrefaire","courir","croire","décevoir","décrire","défaire","devenir","devoir","dire","disparaitre","écrire","élire","émettre","entreprendre","envoyer","faire","inscrire","interdire","intervenir","lire","médire","mettre","mourir","naitre","obtenir","paraitre","parvenir à","permettre","pouvoir","prédire","prendre","prescrire","prévenir","prévoir","promettre","recevoir","reconnaitre","recourir à","redire","refaire","relire","renvoyer","reprendre","retenir","revivre","revoir","rire","s’asseoir","s’inscrire","satisfaire","savoir","se souvenir de","secourir","soumettre","sourire","souscrire","soutenir","surprendre","survivre à","tenir","transmettre","venir","vivre","voir","vouloir"],["abattre","accueillir","acquérir","battre","combattre","conclure","conquérir","convaincre","cueillir","débattre","déplaire","dissoudre","émouvoir","exclure","falloir","fuir","haïr","inclure","interrompre","plaire","pleuvoir","poursuivre","promouvoir","recueillir","requérir","résoudre","rompre","s’enfuir","se battre","se débattre","se plaire","se taire","suffire","suivre","taire","vaincre","valoir"]]
+</script>
+<script src="answers.js"></script>
+<script>
+'use strict';
+const $ = (selector, root = document) => root.querySelector(selector);
+const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+
+const courseGroups = ['Zéro excuse', 'Irréguliers indispensables', 'Irréguliers complémentaires'];
+const groups = [...courseGroups, 'Verbes fréquents ajoutés'];
+const subjects = ['je', 'tu', 'il / elle', 'nous', 'vous', 'ils / elles'];
+const tenseEntries = [
+  ['indicatif-present', 'Indicatif présent'], ['passe-compose', 'Passé composé'],
+  ['imparfait', 'Imparfait'], ['plus-que-parfait', 'Plus-que-parfait'],
+  ['futur-simple', 'Futur simple'], ['futur-anterieur', 'Futur antérieur'],
+  ['conditionnel-present', 'Conditionnel présent'], ['conditionnel-passe', 'Conditionnel passé'],
+  ['subjonctif-present', 'Subjonctif présent'], ['subjonctif-passe', 'Subjonctif passé'],
+  ['imperatif', 'Impératif présent'], ['passe-recent', 'Passé récent'], ['futur-proche', 'Futur proche'],
+];
+const tenseLabels = new Map(tenseEntries);
+const allTenses = [...tenseLabels.keys()];
+const motion = matchMedia('(prefers-reduced-motion: reduce)');
+const formatNumber = new Intl.NumberFormat('fr-BE', { maximumFractionDigits: 1 });
+const collator = new Intl.Collator('fr');
+const storageKey = 'verb-o-matic.v1';
+const revision = 'general';
+const topPreset = 'top-50';
+const customSelection = 'manual';
+const restrictions = ['auto', 'no-imperative', 'impersonal'];
+// Étienne Brunet, Éduscol, « Liste de fréquence lexicale » (verbes, rangs 1–50).
+// https://eduscol.education.gouv.fr/6873/liste-de-frequence-lexicale
+const frequentWords = ["être","avoir","faire","dire","pouvoir","aller","voir","vouloir","venir","devoir","prendre","trouver","donner","falloir","parler","mettre","savoir","passer","regarder","aimer","croire","demander","rester","répondre","entendre","penser","arriver","connaitre","devenir","sentir","sembler","tenir","comprendre","rendre","attendre","sortir","vivre","entrer","reprendre","porter","chercher","revenir","appeler","mourir","partir","jeter","suivre","écrire","montrer","tomber"];
+const course = JSON.parse($('#verb-data').textContent).flatMap((list, group) => list.map(word => ({ word, group, restriction: 'auto' })));
+const courseWords = new Set(course.map(entry => entry.word));
+const supplementalWords = new Set(frequentWords.filter(word => !courseWords.has(word)));
+const base = [...course, ...[...supplementalWords]
+  .map(word => ({ word, group: courseGroups.length, restriction: 'auto' }))];
+const baseWords = new Set(base.map(entry => entry.word));
+const normalize = text => text.trim().normalize('NFC').toLocaleLowerCase('fr').replace(/['‘ʼ]/g, '’').replace(/\s+/g, ' ');
+const matchText = text => normalize(text).normalize('NFD').replace(/\p{M}/gu, '');
+const validVerb = word => typeof word === 'string' && word.length <= 55 && /^[\p{L}’]+(?:[ -][\p{L}’]+)*$/u.test(word);
+const aliases = new Map([
+  ['s’assoir', 's’asseoir'], ['naître', 'naitre'], ['connaître', 'connaitre'],
+  ['apparaître', 'apparaitre'], ['disparaître', 'disparaitre'], ['paraître', 'paraitre'], ['reconnaître', 'reconnaitre'],
+]);
+const canonicalWord = text => aliases.get(normalize(text)) ?? normalize(text);
+const defaultState = () => ({
+  version: 1, selected: [...frequentWords], tenses: frequentTenses(),
+  custom: [], presets: [], presetDrafts: {}, activePreset: topPreset, duration: 3, sound: true, music: true, muted: false,
+  musicVolume: 72,
+});
+const durationLimit = value => Math.max(.5, Math.min(12, Math.round(value * 2) / 2));
+const volumeLimit = value => Math.max(0, Math.min(100, Math.round(value)));
+const unique = list => [...new Set(list)];
+function parseState(raw) {
+  if (!raw || raw.version !== 1 ||
+      !['selected', 'tenses', 'custom', 'presets'].every(key => Array.isArray(raw[key]))) {
+    throw Error('Format de fichier incompatible.');
+  }
+  const known = new Set(baseWords);
+  const customized = new Set();
+  const custom = [];
+  for (const entry of raw.custom) {
+    if (!entry || !validVerb(entry.word) || ![0, 1, 2].includes(entry.group) || !restrictions.includes(entry.restriction)) continue;
+    const word = canonicalWord(entry.word);
+    if (customized.has(word) || (known.has(word) && !supplementalWords.has(word))) continue;
+    known.add(word);
+    customized.add(word);
+    custom.push({ word, group: entry.group, restriction: entry.restriction });
+  }
+  const filterWords = words => unique(words.filter(word => known.has(word)));
+  const filterTenses = times => unique(times.filter(time => tenseLabels.has(time)));
+  const presetIds = new Set();
+  const presets = [];
+  for (const preset of raw.presets) {
+    if (!preset || typeof preset.id !== 'string' || !/^user-[\w-]+$/.test(preset.id) ||
+        presetIds.has(preset.id) || typeof preset.name !== 'string' || !preset.name.trim() ||
+        !Array.isArray(preset.selected) || !Array.isArray(preset.tenses)) continue;
+    presetIds.add(preset.id);
+    presets.push({ id: preset.id, name: preset.name.trim().slice(0, 60),
+      selected: filterWords(preset.selected), tenses: filterTenses(preset.tenses) });
+  }
+  const validPreset = [revision, topPreset, customSelection, ...courseGroups.map((_, index) => 'group-' + index), ...presetIds];
+  const presetDrafts = {};
+  for (const id of validPreset.filter(id => id !== customSelection)) {
+    const value = raw.presetDrafts?.[id];
+    if (!value) continue;
+    const draft = {};
+    if (Array.isArray(value.selected)) draft.selected = filterWords(value.selected);
+    if (Array.isArray(value.tenses)) draft.tenses = filterTenses(value.tenses);
+    if (Object.keys(draft).length) presetDrafts[id] = draft;
+  }
+  return {
+    version: 1, selected: filterWords(raw.selected), tenses: filterTenses(raw.tenses), custom, presets, presetDrafts,
+    activePreset: validPreset.includes(raw.activePreset) ? raw.activePreset : customSelection,
+    duration: typeof raw.duration === 'number' && Number.isFinite(raw.duration) ? durationLimit(raw.duration) : 3,
+    sound: typeof raw.sound === 'boolean' ? raw.sound : true,
+    music: typeof raw.music === 'boolean' ? raw.music : raw.sound !== false,
+    muted: raw.muted === true,
+    musicVolume: typeof raw.musicVolume === 'number' && Number.isFinite(raw.musicVolume) ? volumeLimit(raw.musicVolume) : 72,
+  };
+}
+let state = defaultState();
+try {
+  const saved = localStorage.getItem(storageKey);
+  if (saved) state = parseState(JSON.parse(saved));
+} catch { /* An unavailable store leaves the exercise usable. */ }
+
+let page = 'game';
+let spinning = false;
+let projection = false;
+let current = ['nous', 'parler', 'subjonctif-present'];
+let locked = [false, false, false];
+let choices = [];
+let feedbackTimer;
+let audio;
+let audioBus;
+let editWord = null;
+let conjugationsPromise;
+let answerRequest = 0;
+let session = null;
+const sessionGuideKey = 'verb-o-matic.session-guide.v1';
+let sessionGuideSeen = false;
+try { sessionGuideSeen = localStorage.getItem(sessionGuideKey) === 'seen'; }
+catch { /* The guide remains available without storage. */ }
+
+function message(text) {
+  const feedback = $('#feedback');
+  clearTimeout(feedbackTimer);
+  feedback.textContent = text;
+  feedback.hidden = false;
+  feedbackTimer = setTimeout(() => { feedback.hidden = true; }, 4200);
+}
+function persist() {
+  try { localStorage.setItem(storageKey, JSON.stringify(state)); }
+  catch { message('Le navigateur bloque l’enregistrement local. Tu peux exporter tes réglages.'); }
+}
+const inventory = () => {
+  const customWords = new Set(state.custom.map(entry => entry.word));
+  return [...base.filter(entry => !customWords.has(entry.word)), ...state.custom];
+};
+const randomChoice = items => items[Math.floor(Math.random() * items.length)];
+
+const impersonal = new Set(['falloir', 'pleuvoir', 'neiger']);
+const noImperative = new Set([
+  'pouvoir', 'devoir', 'naitre', 'renaitre', 'valoir', 'équivaloir', 'prévaloir', 'ravoir',
+  'déchoir', 'échoir', 'choir', 'gésir',
+]);
+const imperativeSubjects = new Set(['tu', 'nous', 'vous']);
+
+function allowed(subject, entry, time) {
+  if (entry.restriction === 'impersonal' || impersonal.has(entry.word)) {
+    return subject === 'il / elle' && time !== 'imperatif';
+  }
+  if (time !== 'imperatif') return true;
+  return imperativeSubjects.has(subject) && entry.restriction !== 'no-imperative' && !noImperative.has(entry.word);
+}
+function selectionLists() {
+  return [
+    locked[0] ? [current[0]] : subjects,
+    locked[1] ? [current[1]] : state.selected,
+    locked[2] ? [current[2]] : state.tenses,
+  ];
+}
+function computeChoices() {
+  const active = new Map(inventory().map(entry => [entry.word, entry]));
+  const [people, verbs, times] = selectionLists();
+  const results = [];
+  const fixedSubject = locked[0] ? displaySlot(current[0], 0) : null;
+  for (const word of verbs) {
+    const entry = active.get(word);
+    for (const time of times) {
+      for (const subject of people) {
+        const candidate = [subject, word, time];
+        if (allowed(subject, entry, time) &&
+            (!fixedSubject || displaySlot(subject, 0, candidate) === fixedSubject)) {
+          results.push(candidate);
+        }
+      }
+    }
+  }
+  return results;
+}
+function getProblem() {
+  if (!state.selected.length) return 'Sélectionne au moins un verbe dans les réglages.';
+  if (!state.tenses.length) return 'Sélectionne au moins un temps dans les réglages.';
+  if (locked.every(Boolean)) return 'Déverrouille au moins un rouleau pour relancer.';
+  if (!choices.length) return 'Aucune combinaison possible. Déverrouille un rouleau ou modifie la sélection.';
+  return '';
+}
+function displaySlot(value, index, triplet = current) {
+  if (!value) return '—';
+  if (index === 2) return tenseLabels.get(value).toLocaleLowerCase('fr');
+  if (index === 0 && value === 'il / elle') {
+    const entry = state.custom.find(item => item.word === triplet[1]);
+    if (impersonal.has(triplet[1]) || entry?.restriction === 'impersonal') return 'il';
+  }
+  return value;
+}
+function buildReels() {
+  ['Sujet', 'Infinitif', 'Temps'].forEach((title, index) => {
+    const reel = document.createElement('section');
+    reel.className = 'reel';
+    reel.innerHTML = '<div class="reel-top"><h3 class="reel-title">' + title + '</h3>' +
+      '<button type="button" class="lock" aria-pressed="false"></button></div>' +
+      '<div class="window" aria-hidden="true"><div class="selection-band"></div><div class="track"></div></div>' +
+      '<span class="indicator" aria-hidden="true"></span>';
+    $('.lock', reel).addEventListener('click', () => {
+      if (spinning || !current[index]) return;
+      locked[index] = !locked[index];
+      refreshGame();
+    });
+    $('#reels').append(reel);
+  });
+}
+const lockIcon = open => '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2"/>' +
+  (open ? '<path d="M16 10V7a4 4 0 0 0-7-2.6"/>' : '<path d="M8 10V7a4 4 0 0 1 8 0v3"/>') + '</svg>';
+function fillTrack(track, words, center) {
+  track.replaceChildren(...words.map((word, offset) => {
+    const slot = document.createElement('div');
+    slot.className = 'slot' + (offset === center ? ' active' : '') + (word.length > 17 ? ' long' : '');
+    slot.textContent = word;
+    return slot;
+  }));
+}
+function neighbor(pool, excluded, index) {
+  const others = pool.filter(value => value !== excluded);
+  if (!others.length) return '';
+  return displaySlot(randomChoice(others), index, []);
+}
+function showStationary(reel, words) {
+  const track = $('.track', reel);
+  fillTrack(track, words, 1);
+  track.style.transform = 'translateY(calc(-1.5 * var(--cell)))';
+}
+function refreshGame() {
+  if (spinning) return;
+  const available = [subjects, state.selected, state.tenses];
+  current = current.map((value, index) => available[index].includes(value) ? value : null);
+  locked = locked.map((lock, index) => lock && Boolean(current[index]));
+  choices = computeChoices();
+  $('#reveal-answer').disabled = !canRevealAnswer();
+  const warning = getProblem();
+  $('#game-alert').hidden = !warning;
+  $('#game-alert').textContent = warning;
+  $('#game-count').textContent = state.selected.length + ' verbes · ' + state.tenses.length + ' temps';
+  $$('.reel').forEach((reel, index) => {
+    const lock = $('.lock', reel);
+    const title = $('.reel-title', reel).textContent.toLocaleLowerCase('fr');
+    const value = displaySlot(current[index], index);
+    lock.innerHTML = lockIcon(!locked[index]);
+    lock.setAttribute('aria-pressed', locked[index]);
+    lock.setAttribute('aria-label', (locked[index] ? 'Déverrouiller ' : 'Verrouiller ') + title + ' · ' + value);
+    lock.title = locked[index] ? 'Déverrouiller' : 'Verrouiller';
+    lock.disabled = !current[index];
+    const track = $('.track', reel);
+    if ($('.active', track)?.textContent !== value) {
+      showStationary(reel, [
+        neighbor(available[index], current[index], index), value, neighbor(available[index], current[index], index),
+      ]);
+    }
+  });
+}
+function canRevealAnswer() {
+  if (spinning || !current.every(Boolean)) return false;
+  const word = current[1];
+  const entry = inventory().find(item => item.word === word);
+  return Boolean(entry && allowed(current[0], entry, current[2]));
+}
+function hideAnswer() {
+  answerRequest++;
+  $('#answer-panel').hidden = true;
+  $('#answer-lines').replaceChildren();
+  $('#reveal-answer').setAttribute('aria-expanded', 'false');
+  $('#reveal-answer').textContent = 'Voir la réponse';
+}
+function loadConjugations() {
+  conjugationsPromise ??= fetch('conjugations.json').then(response => {
+    if (!response.ok) throw Error('Données de conjugaison indisponibles');
+    return response.json();
+  }).then(data => data.verbs).catch(error => {
+    conjugationsPromise = undefined;
+    throw error;
+  });
+  return conjugationsPromise;
+}
+async function revealAnswer() {
+  if (!canRevealAnswer()) return;
+  if (!$('#answer-panel').hidden) { hideAnswer(); return; }
+  const request = ++answerRequest;
+  const [subject, word, tense] = current;
+  const controls = $('#reveal-answer');
+  const content = $('#answer-lines');
+  controls.setAttribute('aria-expanded', 'true');
+  controls.textContent = 'Masquer la réponse';
+  $('#answer-panel').hidden = false;
+  content.textContent = 'Recherche de la réponse…';
+  let lines;
+  try {
+    if (baseWords.has(word)) {
+      const dictionary = await loadConjugations();
+      const impersonal = displaySlot(subject, 0) === 'il';
+      lines = VerbAnswers.answer(dictionary, {word, person: subjects.indexOf(subject), tense, impersonal})?.lines;
+    }
+  } catch { /* Keep the interaction usable when the lexicon is unavailable. */ }
+  if (request !== answerRequest) return;
+  content.replaceChildren(...(lines ?? ['Réponse non disponible']).map(form => {
+    const line = document.createElement('p');
+    line.textContent = form;
+    return line;
+  }));
+  $('#answer-panel').scrollIntoView({block:'nearest'});
+}
+function note(frequency, { delay = 0, length = .075, volume = .05, waveform = 'triangle', glideTo } = {}) {
+  if (state.muted || !state.sound || !audio || audio.state !== 'running') return;
+  const start = audio.currentTime + delay;
+  const oscillator = audio.createOscillator();
+  const gain = audio.createGain();
+  oscillator.type = waveform;
+  oscillator.frequency.setValueAtTime(frequency, start);
+  if (glideTo) oscillator.frequency.exponentialRampToValueAtTime(glideTo, start + length);
+  gain.gain.setValueAtTime(.001, start);
+  gain.gain.exponentialRampToValueAtTime(volume, start + .006);
+  gain.gain.exponentialRampToValueAtTime(.001, start + length);
+  oscillator.connect(gain).connect(audioBus);
+  oscillator.start(start);
+  oscillator.stop(start + length + .01);
+}
+function wakeAudio() {
+  if (state.muted || !state.sound) return;
+  const Context = window.AudioContext || window.webkitAudioContext;
+  if (!Context) return;
+  try {
+    if (!audio) {
+      audio = new Context();
+      audioBus = audio.createGain();
+      audioBus.connect(audio.destination);
+    }
+    if (audio.state !== 'running' && audio.state !== 'closed') audio.resume().catch(() => {});
+  } catch { /* A browser can deny audio without blocking play. */ }
+}
+const reelSounds = [
+  { interval: 126, notes: [196, 247, 220, 294], stop: [392, 523] },
+  { interval: 96, notes: [294, 349, 330, 392], stop: [494, 659] },
+  { interval: 110, notes: [247, 330, 294, 370], stop: [587, 784] },
+];
+function startReelSound(index, duration) {
+  const voice = reelSounds[index];
+  const start = performance.now();
+  let pulse = 0;
+  let timer = setTimeout(tick, 24 + index * 21);
+  function tick() {
+    const elapsed = performance.now() - start;
+    if (elapsed >= duration - 36) return;
+    const progress = elapsed / duration;
+    const brake = Math.max(0, (progress - .55) / .45);
+    const frequency = voice.notes[pulse % voice.notes.length];
+    note(frequency, {
+      waveform: 'square', length: .038 + brake * .023,
+      volume: pulse % 4 === 0 ? .024 : .016, glideTo: frequency * (.82 - brake * .16),
+    });
+    pulse++;
+    timer = setTimeout(tick, voice.interval * (1 + 2.15 * brake ** 2));
+  }
+  return () => clearTimeout(timer);
+}
+function playReelStop(index) {
+  const [first, second] = reelSounds[index].stop;
+  note(first, { length: .067, volume: .058 });
+  note(second, { delay: .044, length: .11, volume: .041 });
+}
+function spinReel(reel, index, pool, target, duration) {
+  const track = $('.track', reel);
+  const cell = $('.slot', track).getBoundingClientRect().height;
+  const pace = [7.4, 10.8, 8.9][index];
+  const steps = Math.max(3, Math.round(duration * pace / 1000));
+  const start = $$('.slot', track).map(slot => slot.textContent);
+  const end = [neighbor(pool, target[index], index), displaySlot(target[index], index, target),
+    neighbor(pool, target[index], index)];
+  const filler = Array.from({ length: steps }, () => displaySlot(randomChoice(pool), index, []));
+  const words = [...start, ...filler, ...end];
+  reel.classList.remove('flash');
+  reel.classList.add('rolling');
+  $('.window', reel).classList.add('rolling-window');
+  fillTrack(track, words, 1);
+  const offset = value => 'translateY(' + (-cell * value) + 'px)';
+  const animation = track.animate([
+    { transform: offset(1.5) },
+    { transform: offset(2.5 + steps), offset: .66, easing: 'cubic-bezier(0.18,0.72,0.38,1)' },
+    { transform: offset(4.5 + steps) },
+  ], { duration, easing: 'linear', fill: 'forwards' });
+
+  return animation.finished.then(() => {
+    showStationary(reel, end);
+    animation.cancel();
+    reel.classList.remove('rolling');
+    $('.window', reel).classList.remove('rolling-window');
+    reel.classList.add('flash');
+  });
+}
+function setSpinning(value) {
+  spinning = value;
+  updateMusicVolume();
+  if (value) hideAnswer();
+  $('#reveal-answer').disabled = value || !canRevealAnswer();
+  $('#launch').setAttribute('aria-disabled', String(value));
+  $('#launch').textContent = value ? 'Ça tourne…' : 'Lancer';
+  $$('.preset-select, .top [data-page]').forEach(control => { control.disabled = value; });
+  if (value) $$('.lock').forEach(control => { control.disabled = true; });
+}
+function updateSessionControls() {
+  const action = session ? 'Arrêter l’enregistrement' : 'Enregistrer ma session';
+  $$('[data-session-control]').forEach(button => {
+    button.setAttribute('aria-pressed', String(Boolean(session)));
+    button.setAttribute('aria-label', action);
+  });
+  $$('[data-session-tip]').forEach(tip => { tip.textContent = action; });
+}
+function startSession() {
+  if (session) return;
+  sessionGuideSeen = true;
+  try { localStorage.setItem(sessionGuideKey, 'seen'); }
+  catch { /* Recording still works for the current page. */ }
+  session = {startedAt: performance.now(), spins: 0, verbs: new Set(), tenses: new Set(), selections: new Set()};
+  updateSessionControls();
+}
+function recordSpin(recordedSession, target, selection) {
+  if (!recordedSession || recordedSession !== session) return;
+  recordedSession.spins++;
+  recordedSession.verbs.add(target[1]);
+  recordedSession.tenses.add(target[2]);
+  recordedSession.selections.add(selection);
+}
+function showSessionList(selector, values, emptyText) {
+  const list = $(selector);
+  list.replaceChildren(...(values.length ? values : [emptyText]).map(value => {
+    const item = document.createElement('li');
+    item.textContent = value;
+    return item;
+  }));
+}
+function finishSession() {
+  if (!session) return;
+  const finished = session;
+  session = null;
+  updateSessionControls();
+  $('#session-stop').close();
+  const seconds = Math.floor((performance.now() - finished.startedAt) / 1000);
+  $('#session-time').textContent = Math.floor(seconds / 60) + ' min ' + String(seconds % 60).padStart(2, '0') + ' s';
+  $('#session-spins').textContent = finished.spins;
+  $('#session-verbs').textContent = finished.verbs.size;
+  showSessionList('#session-tenses', allTenses.filter(tense => finished.tenses.has(tense)).map(tense => tenseLabels.get(tense)), 'Aucun temps tiré');
+  showSessionList('#session-categories', [...finished.selections], 'Aucune sélection jouée');
+  $('#session-score-value').textContent = '';
+  $$('#session-scores input').forEach(input => { input.checked = false; });
+  $('#session-summary').showModal();
+  $('#session-summary-title').focus();
+}
+function initializeSessionControls() {
+  $$('[data-session-control]').forEach(button => {
+    button.addEventListener('click', () => {
+      if (session) $('#session-stop').showModal();
+      else if (!sessionGuideSeen) $('#session-guide').showModal();
+      else startSession();
+    });
+  });
+  $('#start-session').addEventListener('click', () => {
+    $('#session-guide').close();
+    startSession();
+  });
+  $('#finish-session').addEventListener('click', finishSession);
+  for (let score = 1; score <= 10; score++) {
+    const label = document.createElement('label');
+    const input = document.createElement('input');
+    input.type = 'radio';
+    input.name = 'session-score';
+    input.value = score;
+    input.className = 'sr-only';
+    label.append(input, String(score));
+    input.addEventListener('change', () => { $('#session-score-value').textContent = score + ' / 10'; });
+    $('#session-scores').append(label);
+  }
+}
+async function launch() {
+  if (spinning || page !== 'game') return;
+  if (getProblem()) {
+    $('#game-alert').hidden = false;
+    return;
+  }
+  wakeAudio();
+  const distinct = choices.filter(triplet =>
+    triplet.some((value, index) => value !== current[index])
+  );
+  const target = randomChoice(distinct.length ? distinct : choices);
+  const recordedSession = session;
+  const playedSelection = recordedSession ? presetOptions().find(([id]) => id === state.activePreset)?.[1] ?? 'Sélection personnalisée' : '';
+  const free = locked.flatMap((lock, index) => lock ? [] : [index]);
+  const pools = [subjects, state.selected, state.tenses];
+  setSpinning(true);
+  try {
+    const total = state.duration * 1000;
+    await Promise.all(free.map(async (index, order) => {
+      const fractions = free.length === 3 ? [.67, .84, 1] : free.length === 2 ? [.78, 1] : [1];
+      const duration = total * fractions[order];
+      const reel = $$('.reel')[index];
+      const stopSound = startReelSound(index, duration);
+      try {
+        if (!motion.matches && typeof $('.track', reel).animate === 'function') {
+          await spinReel(reel, index, pools[index], target, duration);
+        } else {
+          await new Promise(resolve => setTimeout(resolve, duration));
+          showStationary(reel, [neighbor(pools[index], target[index], index),
+            displaySlot(target[index], index, target), neighbor(pools[index], target[index], index)]);
+        }
+        playReelStop(index);
+      } finally {
+        stopSound();
+      }
+    }));
+    current = target;
+    recordSpin(recordedSession, target, playedSelection);
+    const result = target.map((value, index) => displaySlot(value, index, target)).join(' · ');
+    $('#result').textContent = 'Résultat du tirage : ' + result;
+    note(523.25, { delay: .12, length: .12, volume: .048 });
+    note(659.25, { delay: .177, length: .13, volume: .043 });
+    note(783.99, { delay: .237, length: .19, volume: .052 });
+  } finally {
+    setSpinning(false);
+    refreshGame();
+  }
+}
+function updateSound() {
+  const enabled = !state.muted && (state.sound || state.music);
+  const action = enabled ? 'Couper le son' : 'Activer le son';
+  const button = $('#sound');
+  button.setAttribute('aria-pressed', String(enabled));
+  button.setAttribute('aria-label', action);
+  $('.sound-on', button).toggleAttribute('hidden', !enabled);
+  $('.sound-off', button).toggleAttribute('hidden', enabled);
+  $('#sound-tooltip').textContent = action;
+  $('#sound-setting').checked = state.sound;
+  $('#music-setting').checked = state.music;
+  if (audioBus) audioBus.gain.setTargetAtTime(!state.muted && state.sound ? 1 : 0, audio.currentTime, .012);
+  updateMusicVolume();
+  syncMusic();
+}
+function updateMusicVolume() {
+  $('#background-music').volume = state.musicVolume / 100 * (spinning ? .46 : 1);
+  $$('[data-music-volume]').forEach(input => { input.value = state.musicVolume; });
+  $$('[data-music-level]').forEach(output => { output.textContent = state.musicVolume + ' %'; });
+}
+function syncMusic() {
+  const music = $('#background-music');
+  if (state.muted || !state.music || page !== 'game' || document.hidden) {
+    music.pause();
+  } else if (music.paused) {
+    music.play().catch(() => {}); // The next user gesture retries if autoplay is blocked.
+  }
+}
+function toggleMasterSound() {
+  if (!state.sound && !state.music) {
+    state.sound = true;
+    state.music = true;
+    state.muted = false;
+  } else {
+    state.muted = !state.muted;
+  }
+  updateSound();
+  persist();
+}
+function updateDuration() {
+  $('#duration').textContent = formatNumber.format(state.duration) + ' s';
+  $('#slower-value').disabled = state.duration <= .5;
+  $('#higher-value').disabled = state.duration >= 12;
+}
+function setProjection(value) {
+  projection = value;
+  document.body.classList.toggle('projection', value);
+  $('#exit-projection').hidden = !value;
+  $(value ? '#launch' : '#projection').focus();
+}
+function setPage(nextPage) {
+  if (spinning || page === nextPage) return;
+  page = nextPage;
+  syncMusic();
+  for (const id of ['game', 'settings', 'inventory']) $('#' + id).hidden = page !== id;
+  $('#game-actions').hidden = page !== 'game';
+  $('#navigation').hidden = page === 'game';
+  $$('#navigation [data-page]').forEach(button => {
+    if (button.dataset.page === page) button.setAttribute('aria-current','page');
+    else button.removeAttribute('aria-current');
+  });
+  if (page === 'inventory') renderInventory();
+  window.scrollTo(0, 0);
+  const heading = $('#' + page + ' h1') ?? $('#launch');
+  if (heading.tagName === 'H1') heading.tabIndex = -1;
+  heading.focus({ preventScroll: true });
+}
+function makeCheckbox(labelText, handler) {
+  const label = document.createElement('label');
+  const check = document.createElement('input');
+  check.type = 'checkbox';
+  const text = document.createElement('span');
+  text.textContent = labelText;
+  label.append(check, text);
+  check.addEventListener('change', () => handler(check.checked));
+  return { label, check };
+}
+function createGroupToggle(group) {
+  const { label, check } = makeCheckbox(groups[group], selected => {
+    const set = new Set(state.selected);
+    for (const entry of inventory().filter(item => item.group === group)) {
+      if (selected) set.add(entry.word);
+      else set.delete(entry.word);
+    }
+    state.selected = [...set];
+    changeSelection('selected');
+  });
+  label.className = 'group-toggle group-' + group;
+  check.dataset.group = group;
+  const count = document.createElement('span');
+  count.className = 'count';
+  count.setAttribute('aria-hidden', 'true');
+  label.append(count);
+  return label;
+}
+function syncChecks() {
+  const selected = new Set(state.selected);
+  const counts = groups.map((_, group) => {
+    const entries = inventory().filter(item => item.group === group);
+    return [entries.filter(item => selected.has(item.word)).length, entries.length];
+  });
+  for (const input of $$('[data-group]')) {
+    const [count, total] = counts[Number(input.dataset.group)];
+    input.checked = count === total;
+    input.indeterminate = count > 0 && count < total;
+    $('.count', input.parentElement).textContent = count + ' / ' + total;
+  }
+  for (const input of $$('[data-word]')) input.checked = selected.has(input.dataset.word);
+  for (const input of $$('[data-tense]')) input.checked = state.tenses.includes(input.dataset.tense);
+  $('#verbs-count').textContent = state.selected.length + ' sélectionnés';
+  $('#tenses-count').textContent = state.tenses.length + ' sélectionnés';
+  $('#select-tenses').disabled = state.tenses.length === allTenses.length;
+  $('#clear-tenses').disabled = state.tenses.length === 0;
+  $('#inventory-count').textContent = state.selected.length + ' / ' + inventory().length + ' sélectionnés';
+}
+function changeSelection(field) {
+  const id = state.activePreset;
+  const original = getPreset(id);
+  if (original) {
+    const draft = state.presetDrafts[id] ?? {};
+    const values = new Set(original[field]);
+    if (state[field].length === values.size && state[field].every(value => values.has(value))) {
+      delete draft[field];
+    } else {
+      draft[field] = [...state[field]];
+    }
+    if (Object.keys(draft).length) state.presetDrafts[id] = draft;
+    else delete state.presetDrafts[id];
+  }
+  commitSettings();
+}
+function commitSettings() {
+  hideAnswer();
+  syncChecks();
+  syncPresets();
+  refreshGame();
+  updateSound();
+  updateDuration();
+  persist();
+}
+function renderInventory(resetScroll = false) {
+  const container = $('#inventory-list');
+  const scroll = container.scrollTop;
+  const search = matchText($('#search').value);
+  const entries = inventory();
+  container.replaceChildren();
+  for (let group = 0; group < groups.length; group++) {
+    const matches = entries.filter(item => item.group === group &&
+      (matchText(item.word).includes(search) ||
+       [...aliases].some(([alias, canonical]) => canonical === item.word && matchText(alias).includes(search))))
+      .sort((a, b) => collator.compare(a.word, b.word));
+    if (!matches.length) continue;
+    const section = document.createElement('section');
+    section.className = 'inventory-group group-' + group;
+    section.append(createGroupToggle(group));
+    const list = document.createElement('ul');
+    for (const entry of matches) {
+      const li = document.createElement('li');
+      li.className = 'verb-item';
+      const { label, check } = makeCheckbox(entry.word, enabled => {
+        const selected = new Set(state.selected);
+        if (enabled) selected.add(entry.word);
+        else selected.delete(entry.word);
+        state.selected = [...selected];
+        changeSelection('selected');
+      });
+      check.dataset.word = entry.word;
+      li.append(label);
+      if (state.custom.includes(entry)) {
+        const edit = document.createElement('button');
+        edit.type = 'button';
+        edit.textContent = 'Modifier';
+        edit.setAttribute('aria-label', 'Modifier ' + entry.word);
+        edit.addEventListener('click', () => openVerbDialog(entry));
+        li.append(edit);
+      }
+      list.append(li);
+    }
+    section.append(list);
+    container.append(section);
+  }
+  if (!container.childElementCount) {
+    const empty = document.createElement('p');
+    empty.className = 'empty-list muted';
+    empty.textContent = 'Aucun verbe trouvé.';
+    container.append(empty);
+  }
+  syncChecks();
+  container.scrollTop = resetScroll ? 0 : scroll;
+}
+function presetOptions() {
+  return [
+    [topPreset, '50 verbes les plus fréquents'],
+    [revision, 'Révision générale'],
+    ...courseGroups.map((name, index) => ['group-' + index, name]),
+    ...state.presets.map(item => [item.id, item.name]),
+    [customSelection, 'Sélection personnalisée'],
+  ];
+}
+function frequentTenses() {
+  return allTenses.filter(tense => tense !== 'subjonctif-passe' && tense !== 'futur-anterieur');
+}
+function syncPresets() {
+  const items = presetOptions().map(([id, label]) => [
+    id, state.presetDrafts[id] ? label + ' · modifiée' : label,
+  ]);
+  $$('.preset-select').forEach(select => {
+    const signature = JSON.stringify(items);
+    if (select.dataset.options !== signature) {
+      select.replaceChildren(...items.map(([id, label]) => {
+        const option = new Option(label, id);
+        option.disabled = id === customSelection;
+        return option;
+      }));
+      select.dataset.options = signature;
+    }
+    select.value = state.activePreset;
+  });
+  $('#reset-preset').hidden = !state.presetDrafts[state.activePreset];
+  $('#delete-preset').hidden = !state.presets.some(item => item.id === state.activePreset);
+}
+function getPreset(id) {
+  if (id === customSelection) return null;
+  let selected;
+  let tenses;
+  if (id === revision) {
+    selected = inventory().filter(item => item.group < courseGroups.length).map(item => item.word);
+    tenses = allTenses;
+  } else if (id === topPreset) {
+    selected = frequentWords;
+    tenses = frequentTenses();
+  } else if (courseGroups.some((_, index) => id === 'group-' + index)) {
+    const group = Number(id.slice(6));
+    selected = inventory().filter(item => item.group === group).map(item => item.word);
+    tenses = allTenses.filter(tense => tense !== 'futur-anterieur');
+  } else {
+    const preset = state.presets.find(item => item.id === id);
+    if (!preset) return null;
+    ({ selected, tenses } = preset);
+  }
+  return {selected, tenses};
+}
+function applyPreset(id) {
+  if (spinning) return;
+  const original = getPreset(id);
+  if (!original) return;
+  const selection = {...original, ...state.presetDrafts[id]};
+  state.selected = [...selection.selected];
+  state.tenses = [...selection.tenses];
+  state.activePreset = id;
+  commitSettings();
+}
+function openVerbDialog(entry) {
+  editWord = entry?.word ?? null;
+  $('#verb-form').reset();
+  $('#verb-dialog-title').textContent = entry ? 'Modifier le verbe' : 'Ajouter des verbes';
+  $('#verb-submit').textContent = entry ? 'Enregistrer' : 'Ajouter';
+  $('#verb-input').value = entry?.word ?? '';
+  $('#verb-series').value = String(entry?.group ?? 0);
+  $('#verb-restriction').value = entry?.restriction ?? 'auto';
+  $('#verb-error').hidden = true;
+  $('#verb-dialog').showModal();
+  $('#verb-input').focus();
+}
+function saveVerbs(event) {
+  event.preventDefault();
+  const entries = unique($('#verb-input').value.split(/[\n,;]+/).map(canonicalWord).filter(Boolean));
+  const existing = new Set(inventory().map(entry => entry.word));
+  if (editWord) existing.delete(editWord);
+  const invalid = entries.find(word => !validVerb(word));
+  const words = entries.filter(word => !existing.has(word));
+  let error = '';
+  if (!entries.length) error = 'Saisis au moins un infinitif.';
+  else if (invalid) error = 'Vérifie la saisie de « ' + invalid + ' ».';
+  else if (editWord && (words.length !== 1 || entries.length !== 1)) error = 'Saisis un seul infinitif qui n’existe pas encore.';
+  else if (!words.length) error = 'Ces verbes figurent déjà dans l’inventaire.';
+  if (error) {
+    $('#verb-error').hidden = false;
+    $('#verb-error').textContent = error;
+    return;
+  }
+  const group = Number($('#verb-series').value);
+  const restriction = $('#verb-restriction').value;
+  const edits = words.map(word => ({ word, group, restriction }));
+  if (editWord) {
+    const replacement = words[0];
+    state.custom = state.custom.map(entry => entry.word === editWord ? edits[0] : entry);
+    const rename = list => list.map(word => word === editWord ? replacement : word);
+    state.selected = rename(state.selected);
+    state.presets.forEach(preset => { preset.selected = rename(preset.selected); });
+    Object.values(state.presetDrafts).forEach(draft => {
+      if (draft.selected) draft.selected = rename(draft.selected);
+    });
+    current[1] = current[1] === editWord ? replacement : current[1];
+  } else {
+    state.custom.push(...edits);
+    state.selected.push(...words);
+  }
+  $('#verb-dialog').close();
+  if (page === 'inventory') renderInventory();
+  changeSelection('selected');
+  message(editWord ? 'Verbe modifié.' : words.length + (words.length === 1 ? ' verbe ajouté.' : ' verbes ajoutés.'));
+}
+function savePreset(event) {
+  event.preventDefault();
+  const name = $('#preset-name').value.trim();
+  const error = $('#preset-error');
+  if (!name || presetOptions().some(([, label]) => collator.compare(label, name) === 0)) {
+    error.hidden = false;
+    error.textContent = name ? 'Ce nom est déjà utilisé. Choisis un autre nom.' : 'Saisis un nom.';
+    return;
+  }
+  const id = 'user-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+  state.presets.push({id, name, selected: [...state.selected], tenses: [...state.tenses]});
+  state.activePreset = id;
+  $('#preset-dialog').close();
+  commitSettings();
+  message('Sélection enregistrée.');
+}
+function exportState() {
+  const exportUrl = URL.createObjectURL(new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' }));
+  const link = document.createElement('a');
+  link.href = exportUrl;
+  link.download = 'verb-o-matic-reglages.json';
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(exportUrl), 1000);
+}
+async function importState(event) {
+  const file = event.target.files[0];
+  event.target.value = '';
+  if (!file) return;
+  try {
+    const imported = parseState(JSON.parse(await file.text()));
+    if (spinning) {
+      message('Attends la fin du tirage avant d’importer.');
+      return;
+    }
+    state = imported;
+    locked = [false, false, false];
+    if (page === 'inventory') renderInventory();
+    commitSettings();
+    message('Réglages importés.');
+  } catch {
+    message('Ce fichier ne contient pas de réglages Verb-o-matic valides.');
+  }
+}
+function initialize() {
+  buildReels();
+  initializeSessionControls();
+  for (const [index, name] of groups.entries()) {
+    $('#group-toggles').append(createGroupToggle(index));
+    if (index < courseGroups.length) $('#verb-series').append(new Option(name, String(index)));
+  }
+  for (const [index, [id, label]] of tenseEntries.entries()) {
+    const control = makeCheckbox(label, selected => {
+      const times = new Set(state.tenses);
+      if (selected) times.add(id);
+      else times.delete(id);
+      state.tenses = [...times];
+      changeSelection('tenses');
+    });
+    control.check.dataset.tense = id;
+    $(index < 11 ? '#main-tenses' : '#phrases').append(control.label);
+  }
+  $$('[data-page]').forEach(button => button.addEventListener('click', () => setPage(button.dataset.page)));
+  $$('[data-add]').forEach(button => button.addEventListener('click', () => openVerbDialog()));
+  $$('[data-close]').forEach(button => button.addEventListener('click', () => button.closest('dialog').close()));
+  $$('.preset-select').forEach(select => select.addEventListener('change', () => applyPreset(select.value)));
+  $('#search').addEventListener('input', () => renderInventory(true));
+  $('#select-tenses').addEventListener('click', () => {
+    state.tenses = [...allTenses];
+    changeSelection('tenses');
+    $('#clear-tenses').focus();
+  });
+  $('#clear-tenses').addEventListener('click', () => {
+    state.tenses = [];
+    changeSelection('tenses');
+    $('#select-tenses').focus();
+  });
+  $('#verb-form').addEventListener('submit', saveVerbs);
+  $('#preset-form').addEventListener('submit', savePreset);
+  $('#save-preset').addEventListener('click', () => {
+    $('#preset-name').value = '';
+    $('#preset-error').hidden = true;
+    $('#preset-dialog').showModal();
+    $('#preset-name').focus();
+  });
+  $('#reset-preset').addEventListener('click', () => {
+    delete state.presetDrafts[state.activePreset];
+    applyPreset(state.activePreset);
+    $('#save-preset').focus();
+  });
+  $('#delete-preset').addEventListener('click', () => {
+    state.presets = state.presets.filter(preset => preset.id !== state.activePreset);
+    delete state.presetDrafts[state.activePreset];
+    state.activePreset = customSelection;
+    commitSettings();
+    $('#save-preset').focus();
+    message('Sélection supprimée.');
+  });
+  $('#sound').addEventListener('click', toggleMasterSound);
+  for (const [selector, key] of [['#sound-setting', 'sound'], ['#music-setting', 'music']]) {
+    $(selector).addEventListener('change', event => {
+      state[key] = event.target.checked;
+      if (state[key]) state.muted = false;
+      updateSound();
+      persist();
+    });
+  }
+  $$('[data-music-volume]').forEach(input => {
+    input.addEventListener('input', () => {
+      state.musicVolume = volumeLimit(input.valueAsNumber);
+      updateMusicVolume();
+      persist();
+    });
+  });
+  document.addEventListener('click', syncMusic);
+  document.addEventListener('visibilitychange', syncMusic);
+  for (const [selector, step] of [['#slower-value', -.5], ['#higher-value', .5]]) {
+    $(selector).addEventListener('click', () => {
+      state.duration = durationLimit(state.duration + step);
+      updateDuration();
+      persist();
+    });
+  }
+  $('#projection').addEventListener('click', () => setProjection(true));
+  $('#exit-projection').addEventListener('click', () => setProjection(false));
+  $('#export').addEventListener('click', exportState);
+  $('#import').addEventListener('click', () => $('#import-file').click());
+  $('#import-file').addEventListener('change', importState);
+  $('#launch').addEventListener('click', launch);
+  $('#reveal-answer').addEventListener('click', revealAnswer);
+  document.addEventListener('keydown', event => {
+    if ($('dialog[open]')) return;
+    if (event.key === 'Escape' && projection) setProjection(false);
+    const isSpace = event.code === 'Space' || event.key === ' ';
+    if (!isSpace || page !== 'game' || event.altKey || event.metaKey || event.ctrlKey || event.isComposing) return;
+    event.preventDefault();
+    if (!event.repeat) $('#launch').click();
+  }, { capture: true });
+  syncChecks();
+  syncPresets();
+  refreshGame();
+  updateSound();
+  updateDuration();
+}
+initialize();
+</script>
+</body>
+</html>
