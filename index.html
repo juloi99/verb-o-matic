@@ -62,6 +62,36 @@ small, .muted { color: var(--muted); }
 .icon-button { display: grid; place-items: center; width: 2.75rem; height: 2.75rem; padding: 0; }
 .icon-button .icon { width: 1.28rem; height: 1.28rem; }
 .icon-button[aria-pressed="false"] { color: var(--muted); }
+[data-session-control] .record-symbol { fill: var(--coral); stroke: none; }
+[data-session-control][aria-pressed="true"] { color: var(--coral); border-color: var(--coral); }
+[data-session-control][aria-pressed="true"] .record-symbol,
+[data-session-control][aria-pressed="false"] .stop-symbol { display: none; }
+[data-session-control] .stop-symbol { fill: currentColor; stroke: none; }
+.projection-session { display: none; }
+.projection .projection-session { display: block; position: fixed; top: .8rem; left: .8rem; z-index: 5; }
+.projection-session .icon-tooltip { left: 0; right: auto; }
+.session-copy { display: grid; gap: .6rem; padding-left: 1.25rem; }
+.session-copy li::marker { color: var(--lime); font-weight: 800; }
+.session-dialog { width: min(42rem, calc(100% - 1.25rem)); }
+.session-dialog > :is(p, ol, dl, fieldset, footer) { margin-block: .8rem 0; }
+.session-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; }
+.session-stats > div { min-width: 0; padding: .6rem .45rem; text-align: center; border: 1px solid var(--border); border-radius: .65rem; background: var(--raised); }
+.session-stats dt { color: var(--muted); font-size: clamp(.7rem, 2.4vw, .9rem); }
+.session-stats dd { margin: .12rem 0 0; color: var(--lime); font: 800 clamp(.95rem, 4vw, 1.6rem)/1.2 var(--mono); }
+.session-chips { display: flex; flex-wrap: wrap; gap: .35rem; list-style: none; padding: .35rem 0 0; }
+.session-chips li { padding: .19rem .55rem; border: 1px solid var(--border); border-radius: 1rem; background: var(--raised); font-size: .8rem; overflow-wrap: anywhere; }
+.session-section { margin-top: .75rem; }
+.session-section h3 { font-size: .93rem; }
+.session-rating { min-width: 0; padding: 0; border: 0; }
+.session-rating legend { font-weight: 750; padding: 0; }
+.rating-scale { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: .32rem; margin-top: .33rem; }
+.rating-scale label { display: grid; min-height: 2.3rem; place-items: center; border: 1px solid var(--border); border-radius: .48rem; background: var(--raised); font: 750 .9rem/1 var(--mono); }
+.rating-scale label:hover { border-color: var(--lime); }
+.rating-scale label:has(:checked) { color: var(--ink); background: var(--lime); border-color: var(--lime); }
+.rating-scale label:has(:focus-visible) { outline: 2px solid var(--violet); outline-offset: 2px; }
+#session-score-value { color: var(--lime); margin-left: .45rem; font-family: var(--mono); }
+.session-portfolio { padding: .6rem .7rem; border-left: 3px solid var(--violet); background: var(--raised); }
+@media (max-width: 460px) { .rating-scale { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
 .icon-tooltip {
   position: absolute; top: calc(100% + .45rem); right: 0; z-index: 6;
   width: max-content; max-width: 13rem; padding: .32rem .5rem; border: 1px solid var(--border);
@@ -248,6 +278,10 @@ dialog textarea { min-height: 6.5rem; resize: vertical; }
 <header class="top shell">
   <div class="brand"><span class="logo" aria-hidden="true"><i></i><i></i><i></i></span><h2>Verb-o-matic</h2></div>
   <div class="actions" id="game-actions">
+    <span class="icon-action">
+      <button type="button" class="icon-button" data-session-control aria-pressed="false" aria-label="Enregistrer ma session"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle class="record-symbol" cx="12" cy="12" r="6"/><rect class="stop-symbol" x="6.5" y="6.5" width="11" height="11" rx="2"/></svg></button>
+      <span class="icon-tooltip" data-session-tip aria-hidden="true">Enregistrer ma session</span>
+    </span>
     <div class="icon-action">
       <button type="button" class="icon-button" id="sound" aria-label="Son général" aria-pressed="true">
         <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="sound-on" d="M16 9a4 4 0 0 1 0 6m2-8a7 7 0 0 1 0 10"/><path class="sound-off" d="m17 10 4 4m0-4-4 4" hidden/></svg>
@@ -280,6 +314,10 @@ dialog textarea { min-height: 6.5rem; resize: vertical; }
 </header>
 <main class="shell">
   <section id="game" aria-label="Jeu">
+    <span class="icon-action projection-session">
+      <button type="button" class="icon-button" data-session-control aria-pressed="false" aria-label="Enregistrer ma session"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle class="record-symbol" cx="12" cy="12" r="6"/><rect class="stop-symbol" x="6.5" y="6.5" width="11" height="11" rx="2"/></svg></button>
+      <span class="icon-tooltip" data-session-tip aria-hidden="true">Enregistrer ma session</span>
+    </span>
     <button type="button" id="exit-projection" hidden>Quitter la projection</button>
     <div class="cabinet">
       <div class="game-toolbar">
@@ -375,6 +413,40 @@ dialog textarea { min-height: 6.5rem; resize: vertical; }
     <div id="inventory-list" class="inventory-list" tabindex="0" role="region" aria-label="Liste des verbes"></div>
   </section>
 </main>
+<dialog id="session-guide" class="session-dialog" aria-labelledby="session-guide-title">
+  <h2 id="session-guide-title">Enregistre ta session</h2>
+  <ol class="session-copy">
+    <li>Démarre l’enregistrement et joue. Tu peux changer de sélection en cours de session.</li>
+    <li>Clique sur le carré en haut de l’écran pour arrêter, puis confirme.</li>
+    <li>Évalue ta session sur 10 et prends une capture du bilan pour ton portfolio.</li>
+  </ol>
+  <footer class="dialog-actions"><button type="button" data-close>Annuler</button><button type="button" class="primary" id="start-session">Démarrer l’enregistrement</button></footer>
+</dialog>
+<dialog id="session-stop" class="session-dialog" aria-labelledby="session-stop-title">
+  <h2 id="session-stop-title">Terminer la session ?</h2>
+  <p>Confirme pour afficher ton bilan et t’autoévaluer.</p>
+  <footer class="dialog-actions"><button type="button" data-close autofocus>Continuer à jouer</button><button type="button" class="primary" id="finish-session">Terminer et voir le bilan</button></footer>
+</dialog>
+<dialog id="session-summary" class="session-dialog" aria-labelledby="session-summary-title">
+  <h2 id="session-summary-title" tabindex="-1">Bilan de ma session</h2>
+  <dl class="session-stats">
+    <div><dt>Temps de jeu</dt><dd id="session-time"></dd></div>
+    <div><dt>Tirages</dt><dd id="session-spins"></dd></div>
+    <div><dt>Verbes différents</dt><dd id="session-verbs"></dd></div>
+  </dl>
+  <section class="session-section" aria-labelledby="session-tenses-title">
+    <h3 id="session-tenses-title">Temps tirés</h3><ul class="session-chips" id="session-tenses"></ul>
+  </section>
+  <section class="session-section" aria-labelledby="session-categories-title">
+    <h3 id="session-categories-title">Sélections jouées</h3><ul class="session-chips" id="session-categories"></ul>
+  </section>
+  <fieldset class="session-rating">
+    <legend>Mon autoévaluation<output id="session-score-value" aria-live="polite"></output></legend>
+    <div class="rating-scale" id="session-scores"></div>
+  </fieldset>
+  <p class="session-portfolio">Prends une capture d’écran de ce bilan avec ta note. Ajoute-la à ton portfolio d’entraînement pour la partager avec ton professeur.</p>
+  <footer class="dialog-actions"><button type="button" data-close>Fermer le bilan</button></footer>
+</dialog>
 <audio id="background-music" src="arcade-loop.wav" preload="none" loop></audio>
 <dialog id="verb-dialog">
   <form id="verb-form">
@@ -447,8 +519,8 @@ const aliases = new Map([
 ]);
 const canonicalWord = text => aliases.get(normalize(text)) ?? normalize(text);
 const defaultState = () => ({
-  version: 1, selected: [...courseWords], tenses: [...allTenses],
-  custom: [], presets: [], presetDrafts: {}, activePreset: revision, duration: 3, sound: true, music: true, muted: false,
+  version: 1, selected: [...frequentWords], tenses: frequentTenses(),
+  custom: [], presets: [], presetDrafts: {}, activePreset: topPreset, duration: 3, sound: true, music: true, muted: false,
   musicVolume: 72,
 });
 const durationLimit = value => Math.max(.5, Math.min(12, Math.round(value * 2) / 2));
@@ -511,7 +583,7 @@ try {
 let page = 'game';
 let spinning = false;
 let projection = false;
-let current = ['nous', 'conduire', 'subjonctif-present'];
+let current = ['nous', 'parler', 'subjonctif-present'];
 let locked = [false, false, false];
 let choices = [];
 let feedbackTimer;
@@ -520,6 +592,11 @@ let audioBus;
 let editWord = null;
 let conjugationsPromise;
 let answerRequest = 0;
+let session = null;
+const sessionGuideKey = 'verb-o-matic.session-guide.v1';
+let sessionGuideSeen = false;
+try { sessionGuideSeen = localStorage.getItem(sessionGuideKey) === 'seen'; }
+catch { /* The guide remains available without storage. */ }
 
 function message(text) {
   const feedback = $('#feedback');
@@ -805,6 +882,79 @@ function setSpinning(value) {
   $$('.preset-select, .top [data-page]').forEach(control => { control.disabled = value; });
   if (value) $$('.lock').forEach(control => { control.disabled = true; });
 }
+function updateSessionControls() {
+  const action = session ? 'Arrêter l’enregistrement' : 'Enregistrer ma session';
+  $$('[data-session-control]').forEach(button => {
+    button.setAttribute('aria-pressed', String(Boolean(session)));
+    button.setAttribute('aria-label', action);
+  });
+  $$('[data-session-tip]').forEach(tip => { tip.textContent = action; });
+}
+function startSession() {
+  if (session) return;
+  sessionGuideSeen = true;
+  try { localStorage.setItem(sessionGuideKey, 'seen'); }
+  catch { /* Recording still works for the current page. */ }
+  session = {startedAt: performance.now(), spins: 0, verbs: new Set(), tenses: new Set(), selections: new Set()};
+  updateSessionControls();
+}
+function recordSpin(recordedSession, target, selection) {
+  if (!recordedSession || recordedSession !== session) return;
+  recordedSession.spins++;
+  recordedSession.verbs.add(target[1]);
+  recordedSession.tenses.add(target[2]);
+  recordedSession.selections.add(selection);
+}
+function showSessionList(selector, values, emptyText) {
+  const list = $(selector);
+  list.replaceChildren(...(values.length ? values : [emptyText]).map(value => {
+    const item = document.createElement('li');
+    item.textContent = value;
+    return item;
+  }));
+}
+function finishSession() {
+  if (!session) return;
+  const finished = session;
+  session = null;
+  updateSessionControls();
+  $('#session-stop').close();
+  const seconds = Math.floor((performance.now() - finished.startedAt) / 1000);
+  $('#session-time').textContent = Math.floor(seconds / 60) + ' min ' + String(seconds % 60).padStart(2, '0') + ' s';
+  $('#session-spins').textContent = finished.spins;
+  $('#session-verbs').textContent = finished.verbs.size;
+  showSessionList('#session-tenses', allTenses.filter(tense => finished.tenses.has(tense)).map(tense => tenseLabels.get(tense)), 'Aucun temps tiré');
+  showSessionList('#session-categories', [...finished.selections], 'Aucune sélection jouée');
+  $('#session-score-value').textContent = '';
+  $$('#session-scores input').forEach(input => { input.checked = false; });
+  $('#session-summary').showModal();
+  $('#session-summary-title').focus();
+}
+function initializeSessionControls() {
+  $$('[data-session-control]').forEach(button => {
+    button.addEventListener('click', () => {
+      if (session) $('#session-stop').showModal();
+      else if (!sessionGuideSeen) $('#session-guide').showModal();
+      else startSession();
+    });
+  });
+  $('#start-session').addEventListener('click', () => {
+    $('#session-guide').close();
+    startSession();
+  });
+  $('#finish-session').addEventListener('click', finishSession);
+  for (let score = 1; score <= 10; score++) {
+    const label = document.createElement('label');
+    const input = document.createElement('input');
+    input.type = 'radio';
+    input.name = 'session-score';
+    input.value = score;
+    input.className = 'sr-only';
+    label.append(input, String(score));
+    input.addEventListener('change', () => { $('#session-score-value').textContent = score + ' / 10'; });
+    $('#session-scores').append(label);
+  }
+}
 async function launch() {
   if (spinning || page !== 'game') return;
   if (getProblem()) {
@@ -816,6 +966,8 @@ async function launch() {
     triplet.some((value, index) => value !== current[index])
   );
   const target = randomChoice(distinct.length ? distinct : choices);
+  const recordedSession = session;
+  const playedSelection = recordedSession ? presetOptions().find(([id]) => id === state.activePreset)?.[1] ?? 'Sélection personnalisée' : '';
   const free = locked.flatMap((lock, index) => lock ? [] : [index]);
   const pools = [subjects, state.selected, state.tenses];
   setSpinning(true);
@@ -840,6 +992,7 @@ async function launch() {
       }
     }));
     current = target;
+    recordSpin(recordedSession, target, playedSelection);
     const result = target.map((value, index) => displaySlot(value, index, target)).join(' · ');
     $('#result').textContent = 'Résultat du tirage : ' + result;
     note(523.25, { delay: .12, length: .12, volume: .048 });
@@ -1042,12 +1195,15 @@ function renderInventory(resetScroll = false) {
 }
 function presetOptions() {
   return [
-    [revision, 'Révision générale'],
     [topPreset, '50 verbes les plus fréquents'],
+    [revision, 'Révision générale'],
     ...courseGroups.map((name, index) => ['group-' + index, name]),
     ...state.presets.map(item => [item.id, item.name]),
     [customSelection, 'Sélection personnalisée'],
   ];
+}
+function frequentTenses() {
+  return allTenses.filter(tense => tense !== 'subjonctif-passe' && tense !== 'futur-anterieur');
 }
 function syncPresets() {
   const items = presetOptions().map(([id, label]) => [
@@ -1077,7 +1233,7 @@ function getPreset(id) {
     tenses = allTenses;
   } else if (id === topPreset) {
     selected = frequentWords;
-    tenses = allTenses.filter(tense => tense !== 'subjonctif-passe' && tense !== 'futur-anterieur');
+    tenses = frequentTenses();
   } else if (courseGroups.some((_, index) => id === 'group-' + index)) {
     const group = Number(id.slice(6));
     selected = inventory().filter(item => item.group === group).map(item => item.word);
@@ -1197,6 +1353,7 @@ async function importState(event) {
 }
 function initialize() {
   buildReels();
+  initializeSessionControls();
   for (const [index, name] of groups.entries()) {
     $('#group-toggles').append(createGroupToggle(index));
     if (index < courseGroups.length) $('#verb-series').append(new Option(name, String(index)));
@@ -1281,6 +1438,7 @@ function initialize() {
   $('#launch').addEventListener('click', launch);
   $('#reveal-answer').addEventListener('click', revealAnswer);
   document.addEventListener('keydown', event => {
+    if ($('dialog[open]')) return;
     if (event.key === 'Escape' && projection) setProjection(false);
     const isSpace = event.code === 'Space' || event.key === ' ';
     if (!isSpace || page !== 'game' || event.altKey || event.metaKey || event.ctrlKey || event.isComposing) return;
